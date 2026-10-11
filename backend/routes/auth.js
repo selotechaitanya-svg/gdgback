@@ -114,9 +114,25 @@ const handleRequestOtp = async (req, res) => {
       });
     }
 
-    // Check if account exists
+    // Strict check: if logging in, account MUST already exist!
     const existingUser = await User.findOne({ email: cleanEmail });
     const isServerAdmin = isAuthorizedAdminEmail(cleanEmail);
+
+    if (type === 'login' && !existingUser && !isServerAdmin) {
+      return res.status(404).json({
+        success: false,
+        notFound: true,
+        message: 'No account found with this email. Please sign up to create your account first.',
+      });
+    }
+
+    if (type === 'register' && existingUser) {
+      return res.status(400).json({
+        success: false,
+        alreadyExists: true,
+        message: 'An account with this email already exists. Please log in instead.',
+      });
+    }
 
     // Enforce 60-second cooldown between OTP requests for the same email
     const existingRecentChallenge = await Otp.findOne({
@@ -262,7 +278,16 @@ router.post('/verify-otp', async (req, res) => {
     const isServerAdmin = isAuthorizedAdminEmail(cleanEmail);
 
     if (!user) {
-      // Auto-create user upon first verified sign-in with password if provided
+      // If user does not exist and name/password were NOT provided, reject the login attempt!
+      if (!name && !password) {
+        return res.status(404).json({
+          success: false,
+          notFound: true,
+          message: 'No account found with this email. Please sign up to create your account first.',
+        });
+      }
+
+      // Registration flow: user provided name & password, create the verified account
       const rawName = name?.trim() || cleanEmail.split('@')[0];
       const displayName = rawName.charAt(0).toUpperCase() + rawName.slice(1);
 
@@ -275,7 +300,7 @@ router.post('/verify-otp', async (req, res) => {
         emailVerified: true,
         emailVerifiedAt: new Date(),
       });
-      console.log(`🎉 New user created via verified email OTP: ${cleanEmail}`);
+      console.log(`🎉 New user registered via verified email OTP: ${cleanEmail}`);
     } else {
       // Existing user: preserve data, sync admin role if authorized
       let needsSave = false;

@@ -101,20 +101,6 @@ export const Navbar = () => {
             </Link>
           )}
 
-          {/* Admin Portal Link */}
-          <Link
-            to="/admin"
-            className={`btn-brutal btn-sm ${isActive('/admin') ? 'btn-red' : ''}`}
-            style={{
-              backgroundColor: isActive('/admin') ? '#EA4335' : '#FFFFFF',
-              color: isActive('/admin') ? '#FFFFFF' : '#000000',
-              fontWeight: 800,
-            }}
-          >
-            <Shield size={15} />
-            Admin Portal
-          </Link>
-
 
         </nav>
 
@@ -233,17 +219,6 @@ export const Navbar = () => {
               My Tickets & QR Codes
             </Link>
           )}
-
-          <Link
-            to="/admin"
-            className="btn-brutal btn-red"
-            style={{ width: '100%', backgroundColor: '#EA4335', color: '#FFFFFF', fontWeight: 800 }}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Shield size={18} />
-            Admin Portal
-          </Link>
-
 
           <div style={{ height: '2px', backgroundColor: '#000000', margin: '0.5rem 0' }} />
 

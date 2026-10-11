@@ -103,9 +103,6 @@ export const Footer = () => {
               <Link to="/my-events" style={{ color: '#000000', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>
                 → My Tickets
               </Link>
-              <Link to="/admin" style={{ color: '#EA4335', fontWeight: 800, fontSize: '0.9rem', textDecoration: 'none' }}>
-                → Admin Portal
-              </Link>
             </div>
 
             <div
