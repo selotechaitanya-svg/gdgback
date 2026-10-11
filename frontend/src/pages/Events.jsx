@@ -140,7 +140,7 @@ export const Events = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
               gap: '1rem',
               alignItems: 'center',
             }}
@@ -327,13 +327,7 @@ export const Events = () => {
             </button>
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-              gap: '2rem',
-            }}
-          >
+          <div className="grid-cards">
             {events.map((event) => (
               <EventCard
                 key={event._id}

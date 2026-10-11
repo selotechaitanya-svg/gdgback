@@ -185,10 +185,12 @@ export const Navbar = () => {
           style={{
             backgroundColor: '#FCFDF8',
             borderTop: '2px solid #000000',
-            padding: '1.5rem',
+            padding: '1.25rem 1rem',
             display: 'flex',
             flexDirection: 'column',
-            gap: '1rem',
+            gap: '0.85rem',
+            maxHeight: 'calc(100vh - 75px)',
+            overflowY: 'auto',
           }}
         >
           <Link

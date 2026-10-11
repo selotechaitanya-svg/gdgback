@@ -319,11 +319,12 @@ export const Login = () => {
                     }}
                     className="input-brutal font-mono"
                     style={{
-                      fontSize: '1.75rem',
-                      letterSpacing: '0.3em',
+                      fontSize: 'clamp(1.2rem, 5vw, 1.75rem)',
+                      letterSpacing: 'clamp(0.15em, 1.5vw, 0.3em)',
                       textAlign: 'center',
                       fontWeight: 900,
                       backgroundColor: '#FFFFFF',
+                      padding: '0.65rem 0.5rem',
                     }}
                     autoFocus
                   />

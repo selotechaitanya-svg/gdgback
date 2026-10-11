@@ -123,14 +123,7 @@ export const Home = () => {
         }}
       >
         <div className="container-gdg">
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-              gap: '3rem',
-              alignItems: 'center',
-            }}
-          >
+          <div className="grid-hero">
             {/* Hero Left: Headline + Mission + CTAs */}
             <div>
               {/* Brand Tag without box or dots */}
@@ -198,14 +191,7 @@ export const Home = () => {
               </div>
 
               {/* Fast Stats Row */}
-              <div
-                style={{
-                  display: 'grid',
-                  gridTemplateColumns: 'repeat(3, 1fr)',
-                  gap: '1rem',
-                  maxWidth: '540px',
-                }}
-              >
+              <div className="grid-stats" style={{ maxWidth: '540px' }}>
                 <div
                   className="card-static"
                   style={{ padding: '0.85rem', textAlign: 'center', backgroundColor: 'var(--google-blue-soft)' }}
@@ -353,13 +339,7 @@ export const Home = () => {
               <p style={{ color: '#52525B' }}>Check back soon or explore past archives!</p>
             </div>
           ) : (
-            <div
-              style={{
-                display: 'grid',
-                gridTemplateColumns: 'repeat(auto-fill, minmax(320px, 1fr))',
-                gap: '2rem',
-              }}
-            >
+            <div className="grid-cards">
               {featuredEvents.map((event) => (
                 <EventCard
                   key={event._id}
@@ -394,7 +374,7 @@ export const Home = () => {
           <div
             style={{
               display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))',
+              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
               gap: '1.75rem',
             }}
           >

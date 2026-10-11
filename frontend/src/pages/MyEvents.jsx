@@ -101,13 +101,7 @@ export const MyEvents = () => {
             </Link>
           </div>
         ) : (
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))',
-              gap: '2rem',
-            }}
-          >
+          <div className="grid-cards">
             {registrations.map((reg) => {
               const event = reg.event;
               if (!event) return null;

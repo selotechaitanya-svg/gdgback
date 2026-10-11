@@ -412,3 +412,163 @@ body {
 ::-webkit-scrollbar-thumb:hover {
   background: var(--google-yellow-light);
 }
+
+/* ==========================================================================
+   RESPONSIVE LAYOUT & SCREEN ADAPTATION SYSTEM
+   Optimized for: Mobile (320px-480px), Phablets (481px-640px),
+   Tablets (641px-1024px), Laptops & Ultra-Wide Desktops (1025px+)
+   ========================================================================== */
+
+/* Universal text wrap protection */
+h1, h2, h3, h4, h5, h6, p, span, a {
+  overflow-wrap: break-word;
+  word-wrap: break-word;
+}
+
+/* Responsive Container Padding */
+@media (max-width: 480px) {
+  .container-gdg {
+    padding: 0 1rem !important;
+  }
+}
+
+@media (min-width: 481px) and (max-width: 768px) {
+  .container-gdg {
+    padding: 0 1.25rem;
+  }
+}
+
+/* Responsive Grid Helpers */
+.grid-cards {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 1.5rem;
+}
+
+@media (min-width: 640px) {
+  .grid-cards {
+    grid-template-columns: repeat(2, 1fr);
+    gap: 1.75rem;
+  }
+}
+
+@media (min-width: 1024px) {
+  .grid-cards {
+    grid-template-columns: repeat(3, 1fr);
+    gap: 2rem;
+  }
+}
+
+/* Responsive Stats Row */
+.grid-stats {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 0.75rem;
+  width: 100%;
+}
+
+@media (max-width: 480px) {
+  .grid-stats {
+    grid-template-columns: 1fr;
+    gap: 0.65rem;
+  }
+}
+
+/* Responsive Hero Two-Column Layout */
+.grid-hero {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2.5rem;
+  align-items: center;
+}
+
+@media (min-width: 960px) {
+  .grid-hero {
+    grid-template-columns: 1.25fr 0.85fr;
+    gap: 3.5rem;
+  }
+}
+
+/* Responsive Event Details Layout */
+.grid-details {
+  display: grid;
+  grid-template-columns: 1fr;
+  gap: 2rem;
+}
+
+@media (min-width: 900px) {
+  .grid-details {
+    grid-template-columns: 1.35fr 0.95fr;
+    gap: 2.5rem;
+  }
+}
+
+/* Responsive Table Wrapper */
+.table-responsive {
+  width: 100%;
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  margin-bottom: 1rem;
+}
+
+.table-responsive table {
+  min-width: 600px;
+}
+
+/* Mobile Touch Target & Spacing Optimization (< 640px) */
+@media (max-width: 640px) {
+  .btn-brutal {
+    min-height: 44px;
+    padding: 0.6rem 1.1rem;
+    font-size: 0.875rem;
+  }
+
+  .btn-sm {
+    min-height: 38px;
+    padding: 0.45rem 0.75rem;
+    font-size: 0.75rem;
+  }
+
+  .btn-lg {
+    padding: 0.8rem 1.5rem;
+    font-size: 0.95rem;
+  }
+
+  .card-static-lg {
+    padding: 1.25rem !important;
+    border-width: 3px !important;
+    border-radius: 12px !important;
+  }
+
+  .card-static {
+    padding: 1rem !important;
+    border-radius: 10px !important;
+  }
+
+  /* Ensure ticket notches and QR modals fit comfortably */
+  .ticket-container {
+    padding: 1.25rem !important;
+    border-width: 3px !important;
+  }
+
+  .ticket-notch-left, .ticket-notch-right {
+    width: 22px;
+    height: 22px;
+  }
+  .ticket-notch-left { left: -12px; }
+  .ticket-notch-right { right: -12px; }
+
+  /* Input tap comfort */
+  .input-brutal {
+    padding: 0.7rem 0.85rem;
+    font-size: 0.95rem;
+  }
+}
+
+/* Tablet Optimizations (641px - 1024px) */
+@media (min-width: 641px) and (max-width: 1024px) {
+  .card-static-lg {
+    padding: 1.75rem !important;
+  }
+}
+

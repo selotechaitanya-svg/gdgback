@@ -169,13 +169,7 @@ export const EventDetails = () => {
         </div>
 
         {/* Main Content Grid */}
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(320px, 1fr))',
-            gap: '2.5rem',
-          }}
-        >
+        <div className="grid-details">
           {/* Left Column: Event Visual & Description */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
             {/* Banner Card */}

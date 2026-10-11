@@ -15,35 +15,7 @@ import MyEvents from './pages/MyEvents';
 import AdminDashboard from './pages/AdminDashboard';
 import Login from './pages/Login';
 import Register from './pages/Register';
-
-function NotFound() {
-  return (
-    <div
-      style={{
-        minHeight: '60vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2rem',
-      }}
-    >
-      <div className="card-static-lg" style={{ padding: '3rem', textAlign: 'center', maxWidth: '500px' }}>
-        <div className="badge-brutal badge-red" style={{ marginBottom: '1rem' }}>
-          ERROR 404
-        </div>
-        <h1 className="font-pixel" style={{ fontSize: '1.5rem', marginBottom: '1rem' }}>
-          PAGE_NOT_FOUND
-        </h1>
-        <p style={{ color: '#52525B', marginBottom: '2rem' }}>
-          The page or route you were looking for doesn't exist or has moved.
-        </p>
-        <Link to="/" className="btn-brutal btn-yellow">
-          Return Home
-        </Link>
-      </div>
-    </div>
-  );
-}
+import NotFound from './pages/NotFound';
 
 function App() {
   return (

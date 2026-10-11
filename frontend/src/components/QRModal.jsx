@@ -32,17 +32,17 @@ export const QRModal = ({ isOpen, onClose, registration }) => {
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
-        padding: '1.5rem',
+        padding: 'clamp(0.75rem, 3vw, 1.5rem)',
       }}
       onClick={onClose}
     >
       <div
         className="ticket-container"
         style={{
-          maxWidth: '520px',
+          maxWidth: '500px',
           width: '100%',
           backgroundColor: '#FFFFFF',
-          padding: '2rem',
+          padding: 'clamp(1.25rem, 4vw, 2rem)',
           position: 'relative',
         }}
         onClick={(e) => e.stopPropagation()}
