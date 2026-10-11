@@ -7,7 +7,14 @@ export const AuthProvider = ({ children }) => {
   const [user, setUser] = useState(null);
   const [loading, setLoading] = useState(true);
 
-  // Verify session on mount (cookies are sent automatically by the browser)
+  /**
+   * Verify session on mount.
+   * Cookies are sent automatically by the browser. If the short-lived access
+   * token has expired, the axios response interceptor will transparently call
+   * /api/auth/refresh (using the long-lived refresh token cookie) and replay
+   * the /api/auth/me request. This keeps users logged in across browser
+   * restarts for up to 7 days.
+   */
   const checkAuth = useCallback(async () => {
     try {
       const res = await api.get('/api/auth/me');
@@ -18,6 +25,9 @@ export const AuthProvider = ({ children }) => {
       setUser(null);
       return null;
     } catch (err) {
+      // The axios interceptor already tried to refresh; if we still got an
+      // error the session is truly expired — clean up local state.
+      localStorage.removeItem('gdg_token');
       setUser(null);
       return null;
     } finally {
@@ -38,6 +48,15 @@ export const AuthProvider = ({ children }) => {
     window.addEventListener('auth:session-expired', handleExpired);
     return () => window.removeEventListener('auth:session-expired', handleExpired);
   }, []);
+
+  /**
+   * Lightweight email existence check — no OTP is sent.
+   * Returns { exists: boolean, email: string }
+   */
+  const checkEmail = async (email) => {
+    const res = await api.post('/api/auth/check-email', { email });
+    return res.data;
+  };
 
   /**
    * Request a 6-digit OTP sent to user's real email address
@@ -106,6 +125,7 @@ export const AuthProvider = ({ children }) => {
         user,
         loading,
         isAdmin,
+        checkEmail,
         requestOtp,
         sendOtp,
         verifyOtp,

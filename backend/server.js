@@ -87,6 +87,7 @@ app.use('/api/auth/register', authLimiter);
 app.use('/api/auth/request-otp', authLimiter);
 app.use('/api/auth/send-otp', authLimiter);
 app.use('/api/auth/verify-otp', authLimiter);
+app.use('/api/auth/check-email', authLimiter);
 app.use('/api/auth/refresh', authLimiter);
 
 // Request Logger (Lightweight)

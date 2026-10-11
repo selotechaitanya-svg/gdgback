@@ -14,9 +14,16 @@ export const Register = () => {
   const [loading, setLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
 
-  const { sendOtp, verifyOtp } = useAuth();
+  const { user, sendOtp, verifyOtp } = useAuth();
   const navigate = useNavigate();
   const location = useLocation();
+
+  // If already logged in, redirect away from register page
+  useEffect(() => {
+    if (user) {
+      navigate('/events', { replace: true });
+    }
+  }, [user, navigate]);
 
   // If redirected from login page with an unregistered email, pre-fill it!
   useEffect(() => {
@@ -71,7 +78,12 @@ export const Register = () => {
         toast.error(res.message || 'Failed to send verification code');
       }
     } catch (err) {
-      toast.error(err.response?.data?.message || 'Error sending verification code');
+      if (err.response?.data?.alreadyExists) {
+        toast('You already have an account — redirecting to sign in!', { icon: '✅' });
+        navigate('/login', { state: { email: email.trim() } });
+      } else {
+        toast.error(err.response?.data?.message || 'Error sending verification code');
+      }
     } finally {
       setLoading(false);
     }

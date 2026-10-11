@@ -45,15 +45,19 @@ api.interceptors.response.use(
     }
 
     // Skip refresh logic for auth endpoints
+    // Only skip refresh for endpoints that are part of the auth flow itself.
+    // /api/auth/me is intentionally NOT listed here so that an expired
+    // access token triggers a silent refresh via the refresh cookie,
+    // keeping users logged in across browser restarts.
     const authUrlPatterns = [
       '/api/auth/login',
       '/api/auth/register',
       '/api/auth/request-otp',
       '/api/auth/send-otp',
       '/api/auth/verify-otp',
+      '/api/auth/check-email',
       '/api/auth/refresh',
       '/api/auth/logout',
-      '/api/auth/me',
     ];
 
     const isAuthRoute = authUrlPatterns.some((pattern) =>

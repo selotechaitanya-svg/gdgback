@@ -85,6 +85,53 @@ const formatSafeUser = (user) => {
 };
 
 // ============================================================================
+// EMAIL CHECK (used by login page to redirect unregistered users to signup)
+// ============================================================================
+
+/**
+ * @route   POST /api/auth/check-email
+ * @desc    Check whether an email is already registered (no OTP sent)
+ * @access  Public
+ */
+router.post('/check-email', async (req, res) => {
+  try {
+    const { email } = req.body;
+
+    if (!email || typeof email !== 'string') {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address.',
+      });
+    }
+
+    const cleanEmail = email.toLowerCase().trim();
+    const emailRegex = /^\S+@\S+\.\S+$/;
+
+    if (!emailRegex.test(cleanEmail)) {
+      return res.status(400).json({
+        success: false,
+        message: 'Please provide a valid email address format.',
+      });
+    }
+
+    const existingUser = await User.findOne({ email: cleanEmail });
+    const isServerAdmin = isAuthorizedAdminEmail(cleanEmail);
+
+    return res.status(200).json({
+      success: true,
+      exists: Boolean(existingUser) || isServerAdmin,
+      email: cleanEmail,
+    });
+  } catch (error) {
+    console.error('Check Email Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to check email. Please try again.',
+    });
+  }
+});
+
+// ============================================================================
 // OTP AUTHENTICATION FLOW
 // ============================================================================
 
