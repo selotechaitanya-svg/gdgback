@@ -50,7 +50,6 @@ function App() {
     <Router>
       <AuthProvider>
         <div style={{ display: 'flex', flexDirection: 'column', minHeight: '100vh' }}>
-          <Preloader />
           <Navbar />
 
           <main style={{ flex: 1 }}>

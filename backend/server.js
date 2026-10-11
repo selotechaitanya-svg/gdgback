@@ -115,7 +115,7 @@ app.get('/api/health', (req, res) => {
 // Serve Frontend Static Build if available (Single-Agency Deployment on Render)
 const frontendDistPath = path.join(__dirname, '../frontend/dist');
 if (fs.existsSync(frontendDistPath)) {
-  app.use(express.static(frontendDistPath));
+  app.use(express.static(frontendDistPath, { maxAge: '1d' }));
   app.get('*', (req, res, next) => {
     if (req.path.startsWith('/api')) {
       return next();

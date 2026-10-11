@@ -53,6 +53,7 @@ api.interceptors.response.use(
       '/api/auth/verify-otp',
       '/api/auth/refresh',
       '/api/auth/logout',
+      '/api/auth/me',
     ];
 
     const isAuthRoute = authUrlPatterns.some((pattern) =>
