@@ -47,10 +47,17 @@ const resolveCachedMongoBinary = () => {
   }
 };
 
+let cachedConnPromise = null;
+
 const connectDB = async () => {
-  // Reuse existing connection across serverless invocations
-  if (mongoose.connection && mongoose.connection.readyState >= 1) {
+  // Reuse existing connection if fully connected
+  if (mongoose.connection && mongoose.connection.readyState === 1) {
     return mongoose.connection;
+  }
+
+  // Reuse in-flight connection promise
+  if (cachedConnPromise) {
+    return cachedConnPromise;
   }
 
   const uri =
@@ -58,12 +65,15 @@ const connectDB = async () => {
     'mongodb+srv://savitaselote2_db_user:6mfCvZEn9Q6VwO54@gdg.hkjz12r.mongodb.net/gdg-eventhub?retryWrites=true&w=majority&appName=GDG';
 
   try {
-    const conn = await mongoose.connect(uri, {
+    cachedConnPromise = mongoose.connect(uri, {
       serverSelectionTimeoutMS: 5000,
     });
+
+    const conn = await cachedConnPromise;
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
+    cachedConnPromise = null;
     console.warn(`⚠️ MongoDB connection at ${uri ? 'provided URI' : 'default'} failed: ${error.message}`);
 
     // In Serverless / Vercel or production environments, do NOT attempt in-memory server

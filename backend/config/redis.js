@@ -4,6 +4,13 @@ let redisClient = null;
 let isConnected = false;
 
 const initRedis = async () => {
+  if (!process.env.REDIS_URI && (process.env.NODE_ENV === 'production' || process.env.VERCEL)) {
+    // Redis is optional. Skip in production/cloud if no dedicated REDIS_URI is provided
+    isConnected = false;
+    redisClient = null;
+    return;
+  }
+
   const redisUri = process.env.REDIS_URI || 'redis://localhost:6379';
 
   try {
