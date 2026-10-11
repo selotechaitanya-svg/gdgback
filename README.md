@@ -295,51 +295,45 @@ docker-compose up --build
 
 ## 🚀 Production Deployment Guide
 
-### 🏆 Option A: Deploy with ONE Agency Only (Render Only — Recommended & Simplest!)
+### 🏆 Option A: Deploy Entire Fullstack Website on Vercel (Fastest & Recommended!)
 
-You do **NOT** need two providers. The backend has been configured to build and serve the React website directly:
-- **1 single URL** for the entire website and API (e.g. `https://gdg-eventhub.onrender.com`).
-- **Zero CORS issues** and **Zero cookie cross-site blocking** (same-origin).
-- **1 single service to manage.**
+You can deploy the **entire application (React Frontend + Express API)** on **Vercel** with **one single project and one URL**:
+- ⚡ **Instant Global CDN** — 0 cold starts, loads in under a second.
+- 🔗 **Single Domain** (e.g. `https://gdg-eventhub.vercel.app`) — Zero CORS issues and seamless cookie handling.
+- 💸 **100% Free** — Fully covered under Vercel's generous hobby tier.
 
-#### Step 1: Database (MongoDB Atlas)
-1. Create a free M0 cluster on [MongoDB Atlas](https://www.mongodb.com/atlas).
-2. Set Network Access to `0.0.0.0/0` (Allow from anywhere).
-3. Create database credentials and copy the connection string (`mongodb+srv://...`).
+#### Step 1: Import on Vercel
+1. Go to [Vercel Dashboard](https://vercel.com/new).
+2. Click **Import** next to your GitHub repository (`selotechaitanya-svg/gdgback`).
+3. Keep default settings (Vercel automatically detects [`vercel.json`](vercel.json)).
 
-#### Step 2: Deploy to Render (1 Web Service)
+#### Step 2: Add Environment Variables
+Under **Environment Variables**, add:
+- `MONGODB_URI`: `mongodb+srv://savitaselote2_db_user:6mfCvZEn9Q6VwO54@gdg.hkjz12r.mongodb.net/gdg-eventhub?retryWrites=true&w=majority&appName=GDG`
+- `NODE_ENV`: `production`
+- `JWT_ACCESS_SECRET`: `c83f9821a0f9b33a593e92e0df401825b8ad28f09d845e28a5`
+- `JWT_REFRESH_SECRET`: `d901a1829e01bc448e89f81239857201948ba985ef0192384a`
+- `OTP_HASH_SECRET`: `72384f8b9192485e9823059178234857291039485720193847`
+- `ADMIN_EMAILS`: `selotechaitanya09@gmail.com,admin@gdgrbu.app,chaitanya@gdgrbu.app`
+
+#### Step 3: Deploy
+Click **Deploy**! In about 60 seconds, your site is live with full Neo-Brutalism UI, active MongoDB Atlas database, and registration capabilities.
+
+---
+
+### Option B: Alternative Single-Agency Deployment (Render)
+
+If you prefer Render:
 1. Go to [Render Dashboard](https://dashboard.render.com/) → **New +** → **Web Service**.
 2. Connect your GitHub repository.
-3. Configure:
-   - **Root Directory**: *(leave blank / repository root)*
-   - **Build Command**: `npm run build:render`
-   - **Start Command**: `npm start`
-   - **Instance Type**: Free
-4. Add Environment Variables:
-   - `NODE_ENV`: `production`
-   - `PORT`: `5000`
-   - `MONGODB_URI`: *(Your MongoDB Atlas connection string)*
-   - `ADMIN_EMAILS`: `your_email@example.com,admin@gdgrbu.app`
-   - `JWT_ACCESS_SECRET`: `your_random_32_char_secret_key`
-   - `JWT_REFRESH_SECRET`: `your_random_32_char_refresh_secret`
-   - `OTP_HASH_SECRET`: `your_random_32_char_otp_secret`
-5. Click **Deploy Web Service**! Render will build the React frontend, start Express, and serve both at `https://your-service.onrender.com`.
+3. Set **Build Command**: `npm run build:render` and **Start Command**: `npm start`.
+4. Add the same environment variables as above and click **Deploy**.
 
 ---
 
-### Option B: Split Architecture (Frontend on Vercel + Backend on Render)
+## 👥 Recruitment Contact
 
-If you prefer using Vercel's edge CDN for the frontend:
-1. **Backend on Render:** Deploy the `backend` folder as a Web Service on Render (Build: `npm install`, Start: `npm start`).
-2. **Frontend on Vercel:** Deploy the `frontend` folder to Vercel (Root: `frontend`, Framework: `Vite`, Env: `VITE_API_URL` pointing to your Render backend). Client-side routing is handled by [`frontend/vercel.json`](frontend/vercel.json).
-
----
-
-## 👥 Recruitment Contacts
-
-- **Saptanshu Wanjari** — GDG RBU Co-Lead: `+91 7350557473`
-- **Zoya Ghachi** — GDG RBU Co-Lead: `+91 7058046302`
-- **Rohit Agrawal** — GDG RBU Web Lead: `+91 9981978217`
+- **Chaitanya Selote** — Developer & Project Lead: `+91 9699910273`
 
 ---
 

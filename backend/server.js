@@ -85,18 +85,18 @@ app.use((req, res, next) => {
 });
 
 // API Routes
-app.use('/api/auth', require('./routes/auth'));
-app.use('/api/admin', require('./routes/admin'));
-app.use('/api/user', require('./routes/user'));
-app.use('/api/events', require('./routes/events'));
-app.use('/api/registrations', require('./routes/registrations'));
-app.use('/api/reminders', require('./routes/reminders'));
+app.use(['/api/auth', '/auth'], require('./routes/auth'));
+app.use(['/api/admin', '/admin'], require('./routes/admin'));
+app.use(['/api/user', '/user'], require('./routes/user'));
+app.use(['/api/events', '/events'], require('./routes/events'));
+app.use(['/api/registrations', '/registrations'], require('./routes/registrations'));
+app.use(['/api/reminders', '/reminders'], require('./routes/reminders'));
 
 const path = require('path');
 const fs = require('fs');
 
 // Root & Healthcheck Endpoints
-app.get('/api/health', (req, res) => {
+app.get(['/api/health', '/health'], (req, res) => {
   res.json({
     status: 'healthy',
     timestamp: new Date().toISOString(),

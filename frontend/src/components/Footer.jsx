@@ -65,54 +65,24 @@ export const Footer = () => {
             </div>
           </div>
 
-          {/* Column 2: Recruitment & Contact Queries (From Task Document) */}
+          {/* Column 2: Recruitment & Contact Queries */}
           <div>
             <div className="badge-brutal badge-yellow" style={{ marginBottom: '1rem' }}>
-              RECRUITMENT 2026-27 CONTACTS
+              RECRUITMENT CONTACT
             </div>
             <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
               <div
                 className="card-static"
-                style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+                style={{ padding: '0.85rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
               >
                 <div>
-                  <div className="font-mono" style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                    Saptanshu Wanjari
+                  <div className="font-mono" style={{ fontSize: '0.9rem', fontWeight: 800 }}>
+                    Chaitanya Selote
                   </div>
-                  <div style={{ fontSize: '0.75rem', color: '#71717A' }}>GDG RBU Co-Lead</div>
+                  <div style={{ fontSize: '0.75rem', color: '#71717A' }}>Developer & Project Lead</div>
                 </div>
-                <a href="tel:+917350557473" className="btn-brutal btn-sm font-mono" style={{ textDecoration: 'none' }}>
-                  +91 7350557473
-                </a>
-              </div>
-
-              <div
-                className="card-static"
-                style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-              >
-                <div>
-                  <div className="font-mono" style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                    Zoya Ghachi
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#71717A' }}>GDG RBU Co-Lead</div>
-                </div>
-                <a href="tel:+917058046302" className="btn-brutal btn-sm font-mono" style={{ textDecoration: 'none' }}>
-                  +91 7058046302
-                </a>
-              </div>
-
-              <div
-                className="card-static"
-                style={{ padding: '0.75rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
-              >
-                <div>
-                  <div className="font-mono" style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                    Rohit Agrawal
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#71717A' }}>Web Lead</div>
-                </div>
-                <a href="tel:+919981978217" className="btn-brutal btn-sm font-mono" style={{ textDecoration: 'none' }}>
-                  +91 9981978217
+                <a href="tel:+919699910273" className="btn-brutal btn-sm font-mono" style={{ textDecoration: 'none' }}>
+                  +91 9699910273
                 </a>
               </div>
             </div>

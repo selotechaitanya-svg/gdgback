@@ -48,16 +48,28 @@ const resolveCachedMongoBinary = () => {
 };
 
 const connectDB = async () => {
+  // Reuse existing connection across serverless invocations
+  if (mongoose.connection && mongoose.connection.readyState >= 1) {
+    return mongoose.connection;
+  }
+
   const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/gdg-eventhub';
 
   try {
     const conn = await mongoose.connect(uri, {
-      serverSelectionTimeoutMS: 3000,
+      serverSelectionTimeoutMS: 5000,
     });
     console.log(`✅ MongoDB Connected: ${conn.connection.host}`);
     return conn;
   } catch (error) {
-    console.warn(`⚠️ Local MongoDB connection at ${uri} failed: ${error.message}`);
+    console.warn(`⚠️ MongoDB connection at ${uri ? 'provided URI' : 'default'} failed: ${error.message}`);
+
+    // In Serverless / Vercel or production environments, do NOT attempt in-memory server
+    if (process.env.VERCEL || process.env.NODE_ENV === 'production') {
+      console.error('❌ Skipping in-memory MongoDB in cloud/serverless environment.');
+      throw error;
+    }
+
     console.log(`🔄 Attempting to initialize fallback in-memory MongoDB...`);
 
     try {
