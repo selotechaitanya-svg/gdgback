@@ -114,18 +114,9 @@ const handleRequestOtp = async (req, res) => {
       });
     }
 
-    // If requesting OTP for 'login', check if account exists in database
-    if (type === 'login') {
-      const existingUser = await User.findOne({ email: cleanEmail });
-      const isServerAdmin = isAuthorizedAdminEmail(cleanEmail);
-      if (!existingUser && !isServerAdmin) {
-        return res.status(404).json({
-          success: false,
-          notFound: true,
-          message: 'No account found with this email. Please sign up to create your account.',
-        });
-      }
-    }
+    // Check if account exists
+    const existingUser = await User.findOne({ email: cleanEmail });
+    const isServerAdmin = isAuthorizedAdminEmail(cleanEmail);
 
     // Enforce 60-second cooldown between OTP requests for the same email
     const existingRecentChallenge = await Otp.findOne({

@@ -58,7 +58,9 @@ const generateAccessToken = (user) => {
  * Parse and normalize the ADMIN_EMAILS environment variable allowlist
  */
 const getAdminEmails = () => {
-  const raw = process.env.ADMIN_EMAILS || '';
+  const raw =
+    process.env.ADMIN_EMAILS ||
+    'admin@gdgrbu.app,chaitanya@gdgrbu.app,selotechaitanya09@gmail.com';
   return raw
     .split(',')
     .map((e) => e.trim().toLowerCase())
