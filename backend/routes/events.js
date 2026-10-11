@@ -1,5 +1,6 @@
 const express = require('express');
 const Event = require('../models/Event');
+const User = require('../models/User');
 const Registration = require('../models/Registration');
 const { protect, admin } = require('../middleware/auth');
 const { getCache, setCache, clearCachePattern } = require('../config/redis');
@@ -76,9 +77,9 @@ router.get('/', async (req, res) => {
     // Cache result in Redis for 60 seconds
     await setCache(cacheKey, responsePayload, 60);
 
-    res.json(responsePayload);
   } catch (error) {
-    res.status(500).json({ success: false, message: 'Server error' });
+    console.error('GET /api/events error:', error);
+    res.status(500).json({ success: false, message: error.message || 'Server error' });
   }
 });
 

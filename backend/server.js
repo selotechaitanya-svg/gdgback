@@ -46,6 +46,18 @@ app.use(cookieParser());
 app.use(express.json({ limit: '10mb' }));
 app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 
+// Ensure Database is connected before executing API routes
+app.use(async (req, res, next) => {
+  if (req.path.startsWith('/api') || req.path.startsWith('/events') || req.path.startsWith('/auth')) {
+    try {
+      await connectDB();
+    } catch (err) {
+      console.warn('DB connection check:', err.message);
+    }
+  }
+  next();
+});
+
 // Rate Limiting
 const apiLimiter = rateLimit({
   windowMs: 15 * 60 * 1000, // 15 minutes
@@ -102,13 +114,16 @@ const fs = require('fs');
 
 // Root & Healthcheck Endpoints
 app.get(['/api/health', '/health'], (req, res) => {
+  const mongoose = require('mongoose');
+  const isDbConnected = mongoose.connection && mongoose.connection.readyState === 1;
   res.json({
-    status: 'healthy',
+    status: isDbConnected ? 'healthy' : 'degraded',
     timestamp: new Date().toISOString(),
     uptime: process.uptime(),
     environment: process.env.NODE_ENV || 'development',
     services: {
-      database: 'connected',
+      database: isDbConnected ? 'connected' : `disconnected (readyState: ${mongoose.connection ? mongoose.connection.readyState : 0})`,
+      mongoUriConfigured: Boolean(process.env.MONGODB_URI),
       rateLimiter: 'active',
       qrGenerator: 'active',
       backgroundJobs: 'active',
