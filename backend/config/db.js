@@ -53,7 +53,9 @@ const connectDB = async () => {
     return mongoose.connection;
   }
 
-  const uri = process.env.MONGODB_URI || 'mongodb://127.0.0.1:27017/gdg-eventhub';
+  const uri =
+    process.env.MONGODB_URI ||
+    'mongodb+srv://savitaselote2_db_user:6mfCvZEn9Q6VwO54@gdg.hkjz12r.mongodb.net/gdg-eventhub?retryWrites=true&w=majority&appName=GDG';
 
   try {
     const conn = await mongoose.connect(uri, {
