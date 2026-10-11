@@ -111,7 +111,12 @@ export const AdminDashboard = () => {
       const res = await requestOtp(adminEmail.trim(), 'login');
       if (res.success) {
         setOtpSent(true);
-        toast.success(`Verification code sent to ${adminEmail.trim()}! Check your inbox.`);
+        if (res.devOtp) {
+          setOtp(res.devOtp);
+          toast.success(`Verification code: ${res.devOtp}`, { duration: 8000 });
+        } else {
+          toast.success(`Verification code sent to ${adminEmail.trim()}! Check your inbox.`);
+        }
         setCountdown(60);
         const timer = setInterval(() => {
           setCountdown((prev) => {
