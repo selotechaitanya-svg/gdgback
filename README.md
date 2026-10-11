@@ -295,27 +295,43 @@ docker-compose up --build
 
 ## 🚀 Production Deployment Guide
 
-### Option A: Recommended Architecture (Frontend on Vercel, Backend on Render)
+### 🏆 Option A: Deploy with ONE Agency Only (Render Only — Recommended & Simplest!)
 
-#### 1. Database (MongoDB Atlas)
+You do **NOT** need two providers. The backend has been configured to build and serve the React website directly:
+- **1 single URL** for the entire website and API (e.g. `https://gdg-eventhub.onrender.com`).
+- **Zero CORS issues** and **Zero cookie cross-site blocking** (same-origin).
+- **1 single service to manage.**
+
+#### Step 1: Database (MongoDB Atlas)
 1. Create a free M0 cluster on [MongoDB Atlas](https://www.mongodb.com/atlas).
 2. Set Network Access to `0.0.0.0/0` (Allow from anywhere).
 3. Create database credentials and copy the connection string (`mongodb+srv://...`).
 
-#### 2. Backend on Render
-1. Create a **New Web Service** linked to your GitHub repository.
-2. Set **Root Directory**: `backend`
-3. Set **Build Command**: `npm install`
-4. Set **Start Command**: `npm start`
-5. Add the Environment Variables from the [Environment Variables](#-environment-variables) section.
-6. Note down your backend URL (e.g., `https://gdg-backend.onrender.com`).
+#### Step 2: Deploy to Render (1 Web Service)
+1. Go to [Render Dashboard](https://dashboard.render.com/) → **New +** → **Web Service**.
+2. Connect your GitHub repository.
+3. Configure:
+   - **Root Directory**: *(leave blank / repository root)*
+   - **Build Command**: `npm run build:render`
+   - **Start Command**: `npm start`
+   - **Instance Type**: Free
+4. Add Environment Variables:
+   - `NODE_ENV`: `production`
+   - `PORT`: `5000`
+   - `MONGODB_URI`: *(Your MongoDB Atlas connection string)*
+   - `ADMIN_EMAILS`: `your_email@example.com,admin@gdgrbu.app`
+   - `JWT_ACCESS_SECRET`: `your_random_32_char_secret_key`
+   - `JWT_REFRESH_SECRET`: `your_random_32_char_refresh_secret`
+   - `OTP_HASH_SECRET`: `your_random_32_char_otp_secret`
+5. Click **Deploy Web Service**! Render will build the React frontend, start Express, and serve both at `https://your-service.onrender.com`.
 
-#### 3. Frontend on Vercel
-1. Create a **New Project** on [Vercel](https://vercel.com/) linked to your repo.
-2. Set **Root Directory**: `frontend`
-3. Set **Framework Preset**: `Vite`
-4. Set Environment Variable: `VITE_API_URL` = `https://gdg-backend.onrender.com`
-5. Click **Deploy**. SPA routing is automatically handled by [`frontend/vercel.json`](frontend/vercel.json).
+---
+
+### Option B: Split Architecture (Frontend on Vercel + Backend on Render)
+
+If you prefer using Vercel's edge CDN for the frontend:
+1. **Backend on Render:** Deploy the `backend` folder as a Web Service on Render (Build: `npm install`, Start: `npm start`).
+2. **Frontend on Vercel:** Deploy the `frontend` folder to Vercel (Root: `frontend`, Framework: `Vite`, Env: `VITE_API_URL` pointing to your Render backend). Client-side routing is handled by [`frontend/vercel.json`](frontend/vercel.json).
 
 ---
 

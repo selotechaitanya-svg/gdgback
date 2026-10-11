@@ -92,17 +92,10 @@ app.use('/api/events', require('./routes/events'));
 app.use('/api/registrations', require('./routes/registrations'));
 app.use('/api/reminders', require('./routes/reminders'));
 
-// Root & Healthcheck Endpoints
-app.get('/', (req, res) => {
-  res.json({
-    name: 'GDG RBU EventHub API',
-    version: '1.0.0',
-    status: 'online',
-    description: 'Event Management & Registration API for Google Developer Group on Campus - Ramdeobaba University',
-    documentation: '/api/health',
-  });
-});
+const path = require('path');
+const fs = require('fs');
 
+// Root & Healthcheck Endpoints
 app.get('/api/health', (req, res) => {
   res.json({
     status: 'healthy',
@@ -119,8 +112,30 @@ app.get('/api/health', (req, res) => {
   });
 });
 
-// 404 Route Handler
-app.use((req, res) => {
+// Serve Frontend Static Build if available (Single-Agency Deployment on Render)
+const frontendDistPath = path.join(__dirname, '../frontend/dist');
+if (fs.existsSync(frontendDistPath)) {
+  app.use(express.static(frontendDistPath));
+  app.get('*', (req, res, next) => {
+    if (req.path.startsWith('/api')) {
+      return next();
+    }
+    res.sendFile(path.join(frontendDistPath, 'index.html'));
+  });
+} else {
+  app.get('/', (req, res) => {
+    res.json({
+      name: 'GDG RBU EventHub API',
+      version: '1.0.0',
+      status: 'online',
+      description: 'Event Management & Registration API for Google Developer Group on Campus - Ramdeobaba University',
+      documentation: '/api/health',
+    });
+  });
+}
+
+// 404 Route Handler for undefined API routes
+app.use('/api/*', (req, res) => {
   res.status(404).json({
     success: false,
     message: `API endpoint not found: ${req.method} ${req.originalUrl}`,

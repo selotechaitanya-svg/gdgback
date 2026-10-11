@@ -1,0 +1,16 @@
+services:
+  - type: web
+    name: gdg-eventhub
+    env: node
+    plan: free
+    buildCommand: npm run build:render
+    startCommand: npm start
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 5000
+      - key: JWT_ACCESS_EXPIRE
+        value: 15m
+      - key: ADMIN_EMAILS
+        value: admin@gdgrbu.app
