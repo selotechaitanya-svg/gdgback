@@ -15,7 +15,12 @@ router.get('/', async (req, res) => {
     const { search, category, sort, page = 1, limit = 12, upcoming } = req.query;
 
     const cacheKey = `events:${JSON.stringify(req.query)}`;
-    const cachedData = await getCache(cacheKey);
+    let cachedData = null;
+    try {
+      cachedData = await getCache(cacheKey);
+    } catch {
+      // cache bypass
+    }
     if (cachedData) {
       return res.json(cachedData);
     }
@@ -74,9 +79,14 @@ router.get('/', async (req, res) => {
       },
     };
 
-    // Cache result in Redis for 60 seconds
-    await setCache(cacheKey, responsePayload, 60);
+    // Cache result in Redis for 60 seconds (non-blocking)
+    try {
+      await setCache(cacheKey, responsePayload, 60);
+    } catch {
+      // ignore
+    }
 
+    res.json(responsePayload);
   } catch (error) {
     console.error('GET /api/events error:', error);
     res.status(500).json({ success: false, message: error.message || 'Server error' });
