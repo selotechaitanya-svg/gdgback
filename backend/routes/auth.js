@@ -172,6 +172,7 @@ const handleRequestOtp = async (req, res) => {
     const emailResult = await sendOtpEmail(cleanEmail, rawOtp, type);
 
     const hasRealSmtp =
+      Boolean(emailResult?.success && emailResult?.provider === 'smtp') ||
       Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS) ||
       Boolean(process.env.RESEND_API_KEY);
 

@@ -155,8 +155,8 @@ const sendOtpEmail = async (email, otp, type = 'login') => {
   const subject = `[GDG RBU] ${otp} is your verification code`;
 
   // 1. Try Gmail SMTP if configured (can send to ANY email address in the world without domain limits)
-  const smtpUser = process.env.EMAIL_USER;
-  const smtpPass = process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : null;
+  const smtpUser = process.env.EMAIL_USER || 'selotechaitanya09@gmail.com';
+  const smtpPass = (process.env.EMAIL_PASS || 'nvfdzxvgzhmtiali').replace(/\s+/g, '');
 
   if (smtpUser && smtpPass) {
     try {
