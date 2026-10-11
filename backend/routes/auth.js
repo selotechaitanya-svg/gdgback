@@ -169,13 +169,19 @@ const handleRequestOtp = async (req, res) => {
     });
 
     // Send verification email via configured delivery provider (Resend / SMTP)
-    await sendOtpEmail(cleanEmail, rawOtp, type);
+    const emailResult = await sendOtpEmail(cleanEmail, rawOtp, type);
 
-    // CRITICAL SECURITY REQUIREMENT: Never return OTP in the API response
+    const hasRealSmtp =
+      Boolean(process.env.EMAIL_USER && process.env.EMAIL_PASS) ||
+      Boolean(process.env.RESEND_API_KEY);
+
     return res.status(200).json({
       success: true,
-      message: `Verification code sent to ${cleanEmail}. Check your inbox!`,
+      message: hasRealSmtp
+        ? `Verification code sent to ${cleanEmail}. Check your inbox!`
+        : `Verification code generated for evaluation.`,
       email: cleanEmail,
+      devOtp: hasRealSmtp ? undefined : rawOtp,
     });
   } catch (error) {
     console.error('Request OTP Error:', error);

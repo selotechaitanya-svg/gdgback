@@ -32,7 +32,12 @@ export const Login = () => {
       const res = await sendOtp(email.trim(), 'login');
       if (res.success) {
         setOtpSent(true);
-        toast.success(`Verification code sent to ${email.trim()}! Check your inbox.`);
+        if (res.devOtp) {
+          setOtp(res.devOtp);
+          toast.success(`Verification Code: ${res.devOtp}`, { duration: 8000 });
+        } else {
+          toast.success(`Verification code sent to ${email.trim()}! Check your inbox.`);
+        }
         setCountdown(60);
         const timer = setInterval(() => {
           setCountdown((prev) => {
