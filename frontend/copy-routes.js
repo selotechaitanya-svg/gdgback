@@ -9,8 +9,14 @@ const distDir = path.join(__dirname, 'dist');
 const indexHtml = path.join(distDir, 'index.html');
 
 if (fs.existsSync(indexHtml)) {
-  // 1. Create 404.html for SPA fallback on static hosting platforms
+  // 1. Create 404.html for SPA fallback on static hosting platforms (both dist and repo root)
   fs.copyFileSync(indexHtml, path.join(distDir, '404.html'));
+  try {
+    const repoRootDir = path.join(__dirname, '..');
+    fs.copyFileSync(indexHtml, path.join(repoRootDir, '404.html'));
+  } catch (err) {
+    console.warn('Could not copy root 404.html:', err.message);
+  }
 
   // 2. Create static route directories so deep-links like /admin return 200 OK directly
   const routes = ['admin', 'login', 'register', 'events', 'my-events'];
