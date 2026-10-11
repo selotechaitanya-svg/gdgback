@@ -1,0 +1,29 @@
+{
+  "name": "gdg-eventhub-backend",
+  "version": "1.0.0",
+  "description": "GDG RBU EventHub - Event Management & Registration API",
+  "main": "server.js",
+  "scripts": {
+    "start": "node server.js",
+    "dev": "node --watch server.js",
+    "seed": "node seed.js",
+    "test": "node tests/system.test.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cookie-parser": "^1.4.7",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.0",
+    "express-rate-limit": "^7.4.0",
+    "jsonwebtoken": "^9.0.2",
+    "mongoose": "^8.7.0",
+    "nodemailer": "^10.1.0",
+    "qrcode": "^1.5.4",
+    "redis": "^6.3.0",
+    "resend": "^6.32.1"
+  },
+  "devDependencies": {
+    "mongodb-memory-server": "^11.3.0"
+  }
+}

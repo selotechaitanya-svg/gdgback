@@ -1,0 +1,414 @@
+/* ==========================================================================
+   GDG RBU EVENTHUB — NEO-BRUTALISM DESIGN SYSTEM
+   Inspired by & Matching: https://www.gdgrbu.app
+   ========================================================================== */
+
+:root {
+  /* Google Developer Brand Palette */
+  --google-blue: #4285F4;
+  --google-blue-light: #60A5FA;
+  --google-blue-soft: #DBEAFE;
+  
+  --google-red: #EA4335;
+  --google-red-light: #F87171;
+  --google-red-soft: #FEE2E2;
+  
+  --google-yellow: #FBBC04;
+  --google-yellow-light: #FACC15;
+  --google-yellow-soft: #FEF08A;
+  
+  --google-green: #34A853;
+  --google-green-light: #4ADE80;
+  --google-green-soft: #DCFCE7;
+  
+  --google-purple: #818CF8;
+  --google-purple-soft: #E0E7FF;
+  
+  /* Canvas & Contrast Tokens */
+  --bg-cream: #FCFDF8;
+  --bg-pure: #FFFFFF;
+  --border-black: #000000;
+  --text-black: #000000;
+  --text-muted: #52525B;
+  --grid-line: rgba(0, 0, 0, 0.06);
+
+  /* Shadows */
+  --brutal-shadow-sm: 2px 2px 0px 0px #000000;
+  --brutal-shadow: 4px 4px 0px 0px #000000;
+  --brutal-shadow-hover: 8px 8px 0px 0px #000000;
+  --brutal-shadow-lg: 10px 10px 0px 0px #000000;
+
+  /* Typography */
+  --font-pixel: 'Press Start 2P', monospace;
+  --font-sans: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+  --font-mono: 'JetBrains Mono', monospace;
+}
+
+*, *::before, *::after {
+  box-sizing: border-box;
+  margin: 0;
+  padding: 0;
+}
+
+html, body {
+  width: 100%;
+  min-height: 100vh;
+  background-color: var(--bg-cream);
+  color: var(--text-black);
+  font-family: var(--font-sans);
+  font-size: 16px;
+  line-height: 1.5;
+  overflow-x: hidden;
+  -webkit-font-smoothing: antialiased;
+}
+
+/* Background 80px Engineering Grid from gdgrbu.app */
+body {
+  background-image: 
+    linear-gradient(to right, var(--grid-line) 1px, transparent 1px),
+    linear-gradient(to bottom, var(--grid-line) 1px, transparent 1px);
+  background-size: 80px 80px;
+}
+
+/* Typography Helpers */
+.font-pixel {
+  font-family: var(--font-pixel);
+  letter-spacing: -0.05em;
+}
+
+.font-mono {
+  font-family: var(--font-mono);
+}
+
+.font-sans {
+  font-family: var(--font-sans);
+}
+
+/* ==========================================================================
+   NEO-BRUTALIST BUTTONS
+   ========================================================================== */
+.btn-brutal {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  font-family: var(--font-sans);
+  font-weight: 800;
+  font-size: 0.95rem;
+  text-transform: uppercase;
+  letter-spacing: 0.03em;
+  padding: 0.65rem 1.4rem;
+  background-color: #FFFFFF;
+  color: var(--text-black);
+  border: 3px solid var(--border-black);
+  border-radius: 8px;
+  box-shadow: var(--brutal-shadow);
+  cursor: pointer;
+  text-decoration: none;
+  transition: all 0.18s cubic-bezier(0.2, 0.8, 0.2, 1);
+  user-select: none;
+}
+
+.btn-brutal:hover:not(:disabled) {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--brutal-shadow-hover);
+}
+
+.btn-brutal:active:not(:disabled) {
+  transform: translate(2px, 2px);
+  box-shadow: 0px 0px 0px 0px #000000;
+}
+
+.btn-brutal:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+  box-shadow: var(--brutal-shadow-sm);
+}
+
+/* Button Variants */
+.btn-blue {
+  background-color: var(--google-blue-light);
+  color: #000000;
+}
+.btn-blue:hover:not(:disabled) {
+  background-color: #3B82F6;
+  color: #FFFFFF;
+}
+
+.btn-yellow {
+  background-color: var(--google-yellow-light);
+  color: #000000;
+}
+.btn-yellow:hover:not(:disabled) {
+  background-color: #EAB308;
+}
+
+.btn-green {
+  background-color: var(--google-green-light);
+  color: #000000;
+}
+.btn-green:hover:not(:disabled) {
+  background-color: #22C55E;
+  color: #FFFFFF;
+}
+
+.btn-red {
+  background-color: var(--google-red-light);
+  color: #000000;
+}
+.btn-red:hover:not(:disabled) {
+  background-color: #EF4444;
+  color: #FFFFFF;
+}
+
+.btn-purple {
+  background-color: var(--google-purple);
+  color: #000000;
+}
+.btn-purple:hover:not(:disabled) {
+  background-color: #6366F1;
+  color: #FFFFFF;
+}
+
+.btn-black {
+  background-color: #000000;
+  color: #FFFFFF;
+}
+.btn-black:hover:not(:disabled) {
+  background-color: #18181B;
+  color: #FFFFFF;
+}
+
+.btn-sm {
+  padding: 0.4rem 0.85rem;
+  font-size: 0.8rem;
+  border-width: 2px;
+  box-shadow: var(--brutal-shadow-sm);
+}
+.btn-sm:hover:not(:disabled) {
+  transform: translate(-1px, -1px);
+  box-shadow: 4px 4px 0px 0px #000000;
+}
+
+.btn-lg {
+  padding: 0.9rem 2rem;
+  font-size: 1.1rem;
+  border-width: 3.5px;
+  box-shadow: var(--brutal-shadow);
+}
+
+/* ==========================================================================
+   NEO-BRUTALIST CARDS & CONTAINERS
+   ========================================================================== */
+.card-brutal {
+  background-color: #FFFFFF;
+  border: 3px solid var(--border-black);
+  border-radius: 12px;
+  box-shadow: var(--brutal-shadow);
+  transition: all 0.2s cubic-bezier(0.2, 0.8, 0.2, 1);
+  overflow: hidden;
+  position: relative;
+}
+
+.card-brutal:hover {
+  transform: translate(-2px, -2px);
+  box-shadow: var(--brutal-shadow-hover);
+}
+
+.card-static {
+  background-color: #FFFFFF;
+  border: 3px solid var(--border-black);
+  border-radius: 12px;
+  box-shadow: var(--brutal-shadow);
+  overflow: hidden;
+}
+
+.card-static-lg {
+  background-color: #FFFFFF;
+  border: 4px solid var(--border-black);
+  border-radius: 16px;
+  box-shadow: var(--brutal-shadow-lg);
+  overflow: hidden;
+}
+
+/* Color Accent Bars (matching gdgrbu.app event cards) */
+.accent-bar-blue { border-top: 6px solid var(--google-blue); }
+.accent-bar-yellow { border-top: 6px solid var(--google-yellow); }
+.accent-bar-green { border-top: 6px solid var(--google-green); }
+.accent-bar-red { border-top: 6px solid var(--google-red); }
+.accent-bar-purple { border-top: 6px solid var(--google-purple); }
+
+/* Badges & Sticker Tags */
+.badge-brutal {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  padding: 0.3rem 0.65rem;
+  font-family: var(--font-mono);
+  font-weight: 700;
+  font-size: 0.75rem;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  background-color: #FFFFFF;
+  border: 2px solid var(--border-black);
+  border-radius: 6px;
+  box-shadow: 2px 2px 0px 0px #000000;
+}
+
+.badge-blue { background-color: var(--google-blue-soft); }
+.badge-yellow { background-color: var(--google-yellow-soft); }
+.badge-green { background-color: var(--google-green-soft); }
+.badge-red { background-color: var(--google-red-soft); }
+.badge-purple { background-color: var(--google-purple-soft); }
+
+/* ==========================================================================
+   INPUTS & FORM CONTROLS
+   ========================================================================== */
+.input-brutal {
+  width: 100%;
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  font-weight: 600;
+  padding: 0.75rem 1rem;
+  background-color: #FFFFFF;
+  border: 3px solid var(--border-black);
+  border-radius: 8px;
+  box-shadow: var(--brutal-shadow-sm);
+  outline: none;
+  transition: all 0.15s ease;
+}
+
+.input-brutal:focus {
+  background-color: #FAFAFA;
+  box-shadow: 4px 4px 0px 0px #000000;
+  transform: translate(-1px, -1px);
+}
+
+.input-brutal::placeholder {
+  color: #A1A1AA;
+  font-weight: 400;
+}
+
+.label-brutal {
+  display: block;
+  font-family: var(--font-mono);
+  font-size: 0.825rem;
+  font-weight: 800;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+  margin-bottom: 0.4rem;
+  color: var(--text-black);
+}
+
+/* ==========================================================================
+   LAYOUT UTILITIES
+   ========================================================================== */
+.container-gdg {
+  width: 100%;
+  max-width: 1380px;
+  margin: 0 auto;
+  padding: 0 1.5rem;
+}
+
+@media (min-width: 1024px) {
+  .container-gdg {
+    padding: 0 2.5rem;
+  }
+}
+
+/* ==========================================================================
+   TICKET & PASS STYLES (for QR Code registration cards)
+   ========================================================================== */
+.ticket-container {
+  background-color: #FFFFFF;
+  border: 4px solid #000000;
+  border-radius: 16px;
+  box-shadow: var(--brutal-shadow-lg);
+  position: relative;
+  overflow: hidden;
+}
+
+.ticket-notch-left, .ticket-notch-right {
+  position: absolute;
+  top: 50%;
+  width: 28px;
+  height: 28px;
+  background-color: var(--bg-cream);
+  border: 4px solid #000000;
+  border-radius: 50%;
+  z-index: 10;
+}
+.ticket-notch-left {
+  left: -16px;
+  transform: translateY(-50%);
+}
+.ticket-notch-right {
+  right: -16px;
+  transform: translateY(-50%);
+}
+
+.ticket-divider {
+  border-top: 3px dashed #000000;
+  margin: 1.5rem 0;
+}
+
+/* ==========================================================================
+   KEYFRAME ANIMATIONS
+   ========================================================================== */
+@keyframes blink {
+  0%, 100% { opacity: 1; }
+  50% { opacity: 0; }
+}
+
+.cursor-blink {
+  animation: blink 1s infinite;
+}
+
+@keyframes float {
+  0%, 100% { transform: translateY(0px) rotate(0deg); }
+  50% { transform: translateY(-8px) rotate(1deg); }
+}
+
+.animate-float {
+  animation: float 4s ease-in-out infinite;
+}
+
+@keyframes pulseGlow {
+  0%, 100% { opacity: 0.4; }
+  50% { opacity: 0.8; }
+}
+
+/* Progress bar inside brutalist container */
+.progress-container {
+  width: 100%;
+  height: 16px;
+  background-color: #F4F4F5;
+  border: 2px solid #000000;
+  border-radius: 999px;
+  overflow: hidden;
+}
+
+.progress-fill {
+  height: 100%;
+  background-color: var(--google-blue);
+  border-right: 2px solid #000000;
+  transition: width 0.4s ease;
+}
+
+/* Custom Scrollbars */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+::-webkit-scrollbar-track {
+  background: var(--bg-cream);
+  border-left: 2px solid #000000;
+}
+::-webkit-scrollbar-thumb {
+  background: var(--google-yellow);
+  border: 2px solid #000000;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: var(--google-yellow-light);
+}

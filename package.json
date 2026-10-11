@@ -1,0 +1,17 @@
+{
+  "name": "gdg-rbu-eventhub",
+  "version": "1.0.0",
+  "private": true,
+  "description": "GDG RBU EventHub - Event Management & Registration System (root runner)",
+  "scripts": {
+    "dev": "concurrently -n api,web -c blue,magenta \"npm run dev --prefix backend\" \"npm run dev --prefix frontend\"",
+    "dev:backend": "npm run dev --prefix backend",
+    "dev:frontend": "npm run dev --prefix frontend",
+    "seed": "npm run seed --prefix backend",
+    "build": "npm run build --prefix frontend",
+    "lint": "npm run lint --prefix frontend"
+  },
+  "devDependencies": {
+    "concurrently": "^9.1.2"
+  }
+}
