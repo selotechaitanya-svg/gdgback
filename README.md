@@ -1,7 +1,7 @@
 # 🚀 GDG RBU EventHub
 
 > **Production-Grade Developer Event Discovery, Ticket Management & Administration Platform with Custom Dual Authentication, Real-Time Seat Locking & High-Contrast Neo-Brutalism UI**  
-> Built for the **Google Developer Groups on Campus · Shri Ramdeobaba University (GDG RBU)** Recruitment Drive (Web Dev - Backend).
+> Built with ❤️ by **Chaitanya Selote** for **Google Developer Groups on Campus · Shri Ramdeobaba University (GDG RBU)**.
 
 [![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
 [![Express.js](https://img.shields.io/badge/Express.js-4.21-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
@@ -18,7 +18,6 @@
 ## 📑 Table of Contents
 
 - [🌟 Project Overview](#-project-overview)
-- [🎯 Requirements Checklist (Recruitment Alignment)](#-requirements-checklist)
 - [⚡ Complete Feature Breakdown](#-complete-feature-breakdown)
   - [1. Public & Attendee Experience](#1-public--attendee-experience)
   - [2. Comprehensive Admin Management Portal (`/admin`)](#2-comprehensive-admin-management-portal-admin)
@@ -44,7 +43,7 @@
 - [🚀 Production Deployment Guide](#-production-deployment-guide)
   - [Option A: Fullstack Vercel Deployment (Recommended)](#option-a-fullstack-vercel-deployment-recommended)
   - [Option B: Render Deployment](#option-b-render-deployment)
-- [👥 Authors & Recruitment Contact](#-authors--recruitment-contact)
+- [👥 Author & Contact](#-author--contact)
 
 ---
 
@@ -60,28 +59,6 @@ It pairs a high-performance Express.js backend with an interactive React 19 fron
 3. **Private Admin Suite:** Authorized organizers can create, modify, inspect, and delete events with real-time seat lock rules, banner presets/file uploads, paginated attendee check-in rosters, and broadcast announcements.
 4. **Instant Scannable Passes:** Generates dynamic cryptographic QR entry tickets with instant download (PNG) and native browser print formatting for physical lanyard badges.
 5. **Zero-Config Developer Experience:** Automatically spins up an embedded in-memory MongoDB server if no local MongoDB instance is present, pre-seeding GDG events and accounts out-of-the-box.
-
----
-
-## 🎯 Requirements Checklist
-
-Every core and bonus requirement from the **GDG RBU Backend Web Developer Recruitment Drive** task specification is fully implemented and tested:
-
-| Requirement | Specification | Implementation Status | Code Reference |
-| :--- | :--- | :---: | :--- |
-| **User Authentication** | Register & login; JWT or session-based authentication | ✅ **Complete (Exceeds)** | `backend/routes/auth.js`<br>`backend/middleware/auth.js` |
-| **Event CRUD** | Title, Description, Date/Time, Venue, Capacity, Category | ✅ **Complete** | `backend/routes/events.js`<br>`backend/models/Event.js` |
-| **Registration Rules** | Authenticated users can register; block duplicates and full events | ✅ **Complete** | `backend/routes/registrations.js` |
-| **Attendee Dashboard** | View registered events and cancel/unregister anytime | ✅ **Complete** | `frontend/src/pages/MyEvents.jsx` |
-| **Admin Operations** | Dedicated admin capabilities to create, edit, and delete events | ✅ **Complete** | `frontend/src/pages/AdminDashboard.jsx`<br>`backend/routes/admin.js` |
-| **React Web App** | Search & filter events, details page, registrations, admin dashboard | ✅ **Complete** | `Events.jsx`, `EventDetails.jsx`, `AdminDashboard.jsx` |
-| **Bonus: Event Reminders** | Schedule automated reminders & trigger organizer broadcast | 🌟 **Bonus Complete** | `backend/routes/reminders.js` |
-| **Bonus: Rate Limiting** | Defend APIs and authentication from brute-force attacks | 🌟 **Bonus Complete** | `backend/server.js` (`express-rate-limit`) |
-| **Bonus: Redis Caching** | Cache public event listings with intelligent invalidation | 🌟 **Bonus Complete** | `backend/config/redis.js` |
-| **Bonus: Docker Support** | Multi-container setup with Docker Compose | 🌟 **Bonus Complete** | `docker-compose.yml`, Dockerfiles |
-| **Bonus: Event Analytics** | Aggregate registrations, categories, top events | 🌟 **Bonus Complete** | `GET /api/events/stats` |
-| **Bonus: QR Code Tickets** | Generate scannable QR passes for venue check-in | 🌟 **Bonus Complete** | `qrcode` library & `QRModal.jsx` |
-| **Bonus: Background Queue** | Simulated batch notification dispatching | 🌟 **Bonus Complete** | `emailService.js` & `reminders.js` |
 
 ---
 
@@ -582,7 +559,7 @@ cd backend
 npm test
 ```
 
-### Test Coverage (38 Tests, 0 Failures):
+### Test Coverage (38 Tests, 0 Failed):
 - ✅ **Cryptographic OTP Integrity:** 6-digit generation and HMAC-SHA256 salted hashing
 - ✅ **Zero Plaintext Leakage:** Plaintext OTP is never returned in API payloads or persisted in DB
 - ✅ **Brute-Force Invalidation:** Automatic invalidation after 5 incorrect verification attempts
@@ -641,9 +618,9 @@ You can host both the **React Frontend** and **Express API** on **Vercel** under
 
 ---
 
-## 👥 Authors & Recruitment Contact
+## 👥 Author & Contact
 
-- **Chaitanya Selote** — Full Stack Developer & Project Lead
+- **Chaitanya Selote** — Full Stack Developer & UI/UX Designer
   - **Phone:** `+91 9699910273`
   - **Email:** `selotechaitanya09@gmail.com`
   - **Portfolio:** [chaitanyaportfoliov2.vercel.app](https://chaitanyaportfoliov2.vercel.app/)
@@ -651,5 +628,5 @@ You can host both the **React Frontend** and **Express API** on **Vercel** under
 ---
 
 <div align="center">
-  <strong>Built with ❤️ for Google Developer Groups on Campus · Shri Ramdeobaba University</strong>
+  <strong>Built with ❤️ by Chaitanya Selote</strong>
 </div>
