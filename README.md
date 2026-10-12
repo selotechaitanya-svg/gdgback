@@ -1,187 +1,488 @@
 # 🚀 GDG RBU EventHub
 
-> **Production-Grade Event Management & Registration Platform with Custom Authentication, Event CRUD & Neo-Brutalism UI**  
+> **Production-Grade Developer Event Discovery, Ticket Management & Administration Platform with Custom Dual Authentication, Real-Time Seat Locking & High-Contrast Neo-Brutalism UI**  
 > Built for the **Google Developer Groups on Campus · Shri Ramdeobaba University (GDG RBU)** Recruitment Drive (Web Dev - Backend).
 
-[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?logo=nodedotjs&logoColor=white)](https://nodejs.org/)
-[![Express.js](https://img.shields.io/badge/Express.js-4.21-000000?logo=express&logoColor=white)](https://expressjs.com/)
-[![React](https://img.shields.io/badge/React-19-61DAFB?logo=react&logoColor=black)](https://react.dev/)
-[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?logo=vite&logoColor=white)](https://vitejs.dev/)
-[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-47A248?logo=mongodb&logoColor=white)](https://www.mongodb.com/)
-[![Redis](https://img.shields.io/badge/Redis-Caching-DC382D?logo=redis&logoColor=white)](https://redis.io/)
-[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?logo=docker&logoColor=white)](https://www.docker.com/)
-[![UI Style](https://img.shields.io/badge/UI%2FUX-Neo--Brutalism-FBBC04?logo=google&logoColor=black)](https://www.gdgrbu.app)
+[![Node.js](https://img.shields.io/badge/Node.js-20%2B-339933?style=for-the-badge&logo=nodedotjs&logoColor=white)](https://nodejs.org/)
+[![Express.js](https://img.shields.io/badge/Express.js-4.21-000000?style=for-the-badge&logo=express&logoColor=white)](https://expressjs.com/)
+[![React](https://img.shields.io/badge/React-19.2-61DAFB?style=for-the-badge&logo=react&logoColor=black)](https://react.dev/)
+[![Vite](https://img.shields.io/badge/Vite-8.3-646CFF?style=for-the-badge&logo=vite&logoColor=white)](https://vitejs.dev/)
+[![MongoDB](https://img.shields.io/badge/MongoDB-Mongoose%208-47A248?style=for-the-badge&logo=mongodb&logoColor=white)](https://www.mongodb.com/)
+[![Redis](https://img.shields.io/badge/Redis-Caching-DC382D?style=for-the-badge&logo=redis&logoColor=white)](https://redis.io/)
+[![Docker](https://img.shields.io/badge/Docker-Ready-2496ED?style=for-the-badge&logo=docker&logoColor=white)](https://www.docker.com/)
+[![UI Style](https://img.shields.io/badge/UI%2FUX-Neo--Brutalism-FBBC04?style=for-the-badge&logo=google&logoColor=black)](https://www.gdgrbu.app)
+[![Tests](https://img.shields.io/badge/Tests-38%2F38%20Passing-34A853?style=for-the-badge&logo=checkmarx&logoColor=white)](backend/tests/system.test.js)
 
 ---
 
 ## 📑 Table of Contents
-- [Project Overview](#-project-overview)
-- [Requirements Checklist (Recruitment Drive Alignment)](#-requirements-checklist)
-- [Architecture & Tech Stack](#-architecture--tech-stack)
-- [Key Features](#-key-features)
-  - [1. Authentication & Security](#1-authentication--security)
-  - [2. Event CRUD & Business Rules](#2-event-crud--business-rules)
-  - [3. Private Admin Management Portal](#3-private-admin-management-portal)
-  - [4. Attendee Experience & QR Tickets](#4-attendee-experience--qr-tickets)
-  - [5. Bonus Features](#5-bonus-features)
-- [API Reference](#-api-reference)
-- [Environment Variables](#-environment-variables)
-- [Getting Started Locally](#-getting-started-locally)
-- [Running Automated Tests](#-running-automated-tests)
-- [Docker Deployment](#-docker-deployment)
-- [Production Deployment Guide](#-production-deployment-guide)
-- [Recruitment Contacts](#-recruitment-contacts)
+
+- [🌟 Project Overview](#-project-overview)
+- [🎯 Requirements Checklist (Recruitment Alignment)](#-requirements-checklist)
+- [⚡ Complete Feature Breakdown](#-complete-feature-breakdown)
+  - [1. Public & Attendee Experience](#1-public--attendee-experience)
+  - [2. Comprehensive Admin Management Portal (`/admin`)](#2-comprehensive-admin-management-portal-admin)
+  - [3. Dual Authentication & Security Engine](#3-dual-authentication--security-engine)
+  - [4. Neo-Brutalist Visual Design System](#4-neo-brutalist-visual-design-system)
+  - [5. Performance, Caching & Resilience](#5-performance-caching--resilience)
+- [🏗️ System Architecture & Directory Structure](#️-system-architecture--directory-structure)
+- [🗄️ Database Schemas & Data Models](#️-database-schemas--data-models)
+- [🔌 Complete REST API Reference](#-complete-rest-api-reference)
+  - [Authentication Endpoints (`/api/auth`)](#authentication-endpoints-apiauth)
+  - [Public & Protected Events (`/api/events`)](#public--protected-events-apievents)
+  - [Registrations & Passes (`/api/registrations`)](#registrations--passes-apiregistrations)
+  - [Dedicated Admin Operations (`/api/admin`)](#dedicated-admin-operations-apiadmin)
+  - [Reminders & Broadcasts (`/api/reminders`)](#reminders--broadcasts-apireminders)
+  - [User Profile Management (`/api/user`)](#user-profile-management-apiuser)
+  - [Health & Diagnostics (`/api/health`)](#health--diagnostics-apihealth)
+- [⚙️ Environment Variables](#️-environment-variables)
+- [💻 Getting Started Locally](#-getting-started-locally)
+  - [Quick Start (Zero-Config In-Memory Mode)](#quick-start-zero-config-in-memory-mode)
+  - [Manual Step-by-Step Installation](#manual-step-by-step-installation)
+- [🧪 Running Automated System Tests](#-running-automated-system-tests)
+- [🐳 Docker Deployment](#-docker-deployment)
+- [🚀 Production Deployment Guide](#-production-deployment-guide)
+  - [Option A: Fullstack Vercel Deployment (Recommended)](#option-a-fullstack-vercel-deployment-recommended)
+  - [Option B: Render Deployment](#option-b-render-deployment)
+- [👥 Authors & Recruitment Contact](#-authors--recruitment-contact)
 
 ---
 
 ## 🌟 Project Overview
 
-**GDG RBU EventHub** is a full-stack event discovery, registration, and administration platform designed specifically for developer communities. It adheres to strict software engineering standards:
+**GDG RBU EventHub** is a production-grade developer event management, discovery, and digital pass ticketing platform engineered for **Google Developer Groups on Campus · Shri Ramdeobaba University (GDG RBU)**.
 
-1. **Robust Backend API:** Built with Express.js and MongoDB, enforcing real-world business constraints (strict seat capacity, duplicate registration prevention, date validation, and atomic updates).
-2. **Custom Dual-Mode Auth:** Built with our own self-hosted cryptographic 6-digit email OTP system, combined with classic email/password support, short-lived 15-minute JWTs, 7-day refresh token rotation, and cross-origin `httpOnly` cookies.
-3. **Interactive React 19 Frontend:** Designed with a high-contrast **Neo-Brutalism aesthetic** matching the official [gdgrbu.app](https://www.gdgrbu.app) identity (bold borders, hard drop shadows, Google palette, and responsive micro-interactions).
-4. **Full Admin Event Management:** Dedicated `/admin` portal allowing authorized organizers to **Create**, **Edit**, and **Delete** events, upload banners, choose presets, and monitor live attendee check-in lists.
+It pairs a high-performance Express.js backend with an interactive React 19 frontend stylized with an authentic **Neo-Brutalism aesthetic** matching the official [gdgrbu.app](https://www.gdgrbu.app) visual identity.
+
+### Why GDG RBU EventHub Stands Out:
+1. **Zero Compromise Security:** Plaintext OTPs and passwords are never persisted. Dual-mode authentication incorporates self-hosted cryptographic **HMAC-SHA256 Email OTPs**, `bcryptjs` salted password hashing, 15-minute JWT access tokens, 7-day refresh token rotation with token reuse detection, and cross-origin `httpOnly` secure cookies.
+2. **Guaranteed Data Integrity:** Atomic capacity verification, concurrency safety, seat depletion protection, duplicate registration locking, and cascade cleanup upon event deletion.
+3. **Private Admin Suite:** Authorized organizers can create, modify, inspect, and delete events with real-time seat lock rules, banner presets/file uploads, paginated attendee check-in rosters, and broadcast announcements.
+4. **Instant Scannable Passes:** Generates dynamic cryptographic QR entry tickets with instant download (PNG) and native browser print formatting for physical lanyard badges.
+5. **Zero-Config Developer Experience:** Automatically spins up an embedded in-memory MongoDB server if no local MongoDB instance is present, pre-seeding GDG events and accounts out-of-the-box.
 
 ---
 
 ## 🎯 Requirements Checklist
 
-Every item from the **GDG RBU Backend Web Developer Recruitment Drive** task specification is fully implemented and validated:
+Every core and bonus requirement from the **GDG RBU Backend Web Developer Recruitment Drive** task specification is fully implemented and tested:
 
 | Requirement | Specification | Implementation Status | Code Reference |
 | :--- | :--- | :---: | :--- |
-| **Authentication** | User registration and login; JWT / session-based authentication | ✅ **Complete (Exceeds)** | `backend/routes/auth.js`<br>`backend/middleware/auth.js` |
+| **User Authentication** | Register & login; JWT or session-based authentication | ✅ **Complete (Exceeds)** | `backend/routes/auth.js`<br>`backend/middleware/auth.js` |
 | **Event CRUD** | Title, Description, Date/Time, Venue, Capacity, Category | ✅ **Complete** | `backend/routes/events.js`<br>`backend/models/Event.js` |
-| **Registration Rules** | Authenticated users can register; prevent duplicates and full-event registration | ✅ **Complete** | `backend/routes/registrations.js` |
-| **User Registrations** | Users can view their registered events and unregister | ✅ **Complete** | `frontend/src/pages/MyEvents.jsx` |
-| **Admin Operations** | Admins can create, update, and delete events | ✅ **Complete** | `frontend/src/pages/AdminDashboard.jsx`<br>`backend/routes/admin.js` |
-| **React Interface** | Browse, search & filter events, view details, register/unregister, view registrations, admin management | ✅ **Complete** | `Events.jsx`, `EventDetails.jsx`, `AdminDashboard.jsx`, `MyEvents.jsx` |
-| **Bonus: Reminders** | Schedule event reminders & admin broadcast | 🌟 **Bonus Implemented** | `backend/routes/reminders.js` |
-| **Bonus: Rate Limiting** | Protect endpoints from brute-force & abuse | 🌟 **Bonus Implemented** | `backend/server.js` (`express-rate-limit`) |
-| **Bonus: Redis Caching** | Cache public event listings with invalidation | 🌟 **Bonus Implemented** | `backend/config/redis.js` |
-| **Bonus: Docker** | Multi-container setup with Docker Compose | 🌟 **Bonus Implemented** | `docker-compose.yml`, Dockerfiles |
-| **Bonus: Analytics** | Event statistics, popular categories, trends | 🌟 **Bonus Implemented** | `GET /api/events/stats` |
-| **Bonus: QR Codes** | Dynamic cryptographic QR pass generation | 🌟 **Bonus Implemented** | `qrcode` library & `QRModal.jsx` |
-| **Bonus: Background Jobs**| Simulated batch email dispatching | 🌟 **Bonus Implemented** | `emailService.js` & `reminders.js` |
+| **Registration Rules** | Authenticated users can register; block duplicates and full events | ✅ **Complete** | `backend/routes/registrations.js` |
+| **Attendee Dashboard** | View registered events and cancel/unregister anytime | ✅ **Complete** | `frontend/src/pages/MyEvents.jsx` |
+| **Admin Operations** | Dedicated admin capabilities to create, edit, and delete events | ✅ **Complete** | `frontend/src/pages/AdminDashboard.jsx`<br>`backend/routes/admin.js` |
+| **React Web App** | Search & filter events, details page, registrations, admin dashboard | ✅ **Complete** | `Events.jsx`, `EventDetails.jsx`, `AdminDashboard.jsx` |
+| **Bonus: Event Reminders** | Schedule automated reminders & trigger organizer broadcast | 🌟 **Bonus Complete** | `backend/routes/reminders.js` |
+| **Bonus: Rate Limiting** | Defend APIs and authentication from brute-force attacks | 🌟 **Bonus Complete** | `backend/server.js` (`express-rate-limit`) |
+| **Bonus: Redis Caching** | Cache public event listings with intelligent invalidation | 🌟 **Bonus Complete** | `backend/config/redis.js` |
+| **Bonus: Docker Support** | Multi-container setup with Docker Compose | 🌟 **Bonus Complete** | `docker-compose.yml`, Dockerfiles |
+| **Bonus: Event Analytics** | Aggregate registrations, categories, top events | 🌟 **Bonus Complete** | `GET /api/events/stats` |
+| **Bonus: QR Code Tickets** | Generate scannable QR passes for venue check-in | 🌟 **Bonus Complete** | `qrcode` library & `QRModal.jsx` |
+| **Bonus: Background Queue** | Simulated batch notification dispatching | 🌟 **Bonus Complete** | `emailService.js` & `reminders.js` |
 
 ---
 
-## 🏗️ Architecture & Tech Stack
+## ⚡ Complete Feature Breakdown
+
+### 1. Public & Attendee Experience
+
+#### 🏠 Homepage (`/`)
+- **Neo-Brutalist 12-Column Hero:** Matches [gdgrbu.app](https://www.gdgrbu.app) styling with retro pixel typography, Google color badges, and high-contrast call-to-actions.
+- **Interactive Terminal Simulator:** Live `gdg_rbu_terminal.sh` card executing simulated CLI commands with retro green syntax highlighting and an authentic blinking cursor `█`.
+- **Key Community Metrics:** Highlights annual metrics including 12+ Annual Events, 1,000+ Developers, and 100% Free Access.
+- **Next Flagship Spotlight:** Direct spotlight card showcasing upcoming flagship summits (e.g. DevFest Nagpur 2026).
+- **Featured Upcoming Events Carousel:** Displays top upcoming events with live seat counters and quick registration buttons.
+- **Core Technology Tracks:** 4 distinct interactive cards for GDG domains:
+  1. *Cloud & DevOps* (Google Cloud, Docker, Kubernetes, Microservices)
+  2. *AI & Vertex AI* (Gemini models, prompt design, multimodal agents)
+  3. *Android & Flutter* (Kotlin, Jetpack Compose, Flutter, Firebase)
+  4. *Modern Web* (Node.js, Express, React 19, TypeScript, Neo-Brutalism)
+- **Interactive FAQ Accordion:** Explains registration eligibility, QR entry passes, seat capacity policies, and email reminders.
+
+#### 📅 Event Discovery Directory (`/events`)
+- **Real-Time Text Search:** Instant client-debounced search across event title, description, and venue location.
+- **Category Filter Pills:** Instant filtering by `All`, `Workshop`, `Hackathon`, `Tech Talk`, `Meetup`, `Conference`, `Bootcamp`, and `Other`.
+- **Time Status Filter:** Toggle seamlessly between `Upcoming`, `Past`, or `All` events.
+- **Flexible Sorting:** Sort by Date Ascending, Date Descending, Title Alphabetical (A-Z), or Seat Capacity.
+- **Live Seat Indicator:** Color-coded badges displaying remaining spots and total confirmed bookings.
+- **Server-Side Pagination:** Smooth navigation with Redis-backed caching for sub-millisecond query responses.
+
+#### 🔍 Event Details Page (`/events/:id`)
+- **High-Resolution Banner:** Full-width header display with fallback handling.
+- **Logistics Breakdown:** Date, time, venue, organizer name, and remaining spots left.
+- **Capacity Progress Bar:** Visual indicator showing percentage of booked seats.
+- **Confetti Celebration:** Fires a multi-colored Google palette particle burst (`canvas-confetti`) when registration succeeds.
+- **One-Click Registration & Cancellation:** Instantly register or cancel, with immediate capacity recalculation.
+- **Automated Reminder Button:** Schedule an automated email reminder 24 hours prior to the event start time.
+- **One-Click Share:** Copy the direct event link to the system clipboard.
+- **Dynamic State Badges:** Displays `PAST EVENT`, `SOLD OUT / FULL`, or `YOU ARE REGISTERED` based on user and event state.
+
+#### 🎟️ Digital Ticket Passes & Dashboard (`/my-events`)
+- **Personal Booking Center:** Displays all confirmed registrations for the authenticated user.
+- **Dynamic Scannable QR Code:** Contains a cryptographically unique verification payload (`userId`, `eventId`, `title`, `name`, `email`, `date`).
+- **Authentic Vintage Ticket Modal:**
+  - Classic admission pass styling with tear notches and a perforated divider line.
+  - High-contrast, scannable QR code display.
+  - **Download Pass:** Downloads ticket as a high-res PNG image (`GDG-Pass-[Title].png`).
+  - **Print Pass:** Opens native browser print dialog formatted specifically for badge lanyards and physical check-in desks.
+- **One-Click Unregister:** Allows users to cancel registration from their ticket card, instantly returning the seat to the community pool.
+
+---
+
+### 2. Comprehensive Admin Management Portal (`/admin`)
+
+The private administrator portal provides community organizers with total control over events and attendee management.
+
+#### 🛡️ Multi-Layer Admin Authorization & Route Guarding
+- **Server-Side Allowlist Enforcement:** Access is strictly bounded by the `ADMIN_EMAILS` environment variable.
+- **Dedicated Admin Login Screen:** If an unauthenticated user navigates to `/admin`, a dedicated administrator OTP challenge form is rendered.
+- **Custom Access Denied Screen:** If an authenticated non-admin user attempts access, a custom `UNAUTHORIZED ACCESS (ACCESS_DENIED)` screen is rendered, explaining that their account is not in `ADMIN_EMAILS` and offering quick buttons to switch accounts or return home.
+- **API Guarding:** All administrative endpoints enforce `protect` and `requireAdmin` middleware, immediately rejecting unauthorized requests with HTTP `403 Forbidden`.
+
+#### 📊 Master-Detail Admin Interface
+- **Left Column (Master Event List):**
+  - Displays all events in chronological order.
+  - Search bar to filter admin events by title, venue, or category.
+  - Live attendee count badge for each event (`👥 registrationCount / capacity`).
+  - Quick action buttons on each card to **Edit** or **Delete**.
+  - One-click selection to load event details and attendee roster in the right pane.
+- **Right Column (Event Detail & Attendee Roster):**
+  - Full details of the currently selected event with high-res banner preview, venue, date, and description.
+  - Live seat calculation badge: `SEATS: X / Y (Remaining: Z)`.
+  - Top action bar featuring **+ Add Event**, **Refresh Data**, and **Sign Out**.
+
+#### ➕ Event Creation (Admin Modal)
+- **Title & Category:** Text input with category dropdown (`Workshop`, `Hackathon`, `Tech Talk`, `Meetup`, `Conference`, `Bootcamp`, `Other`).
+- **Date & Time Picker:** Local datetime picker with ISO 8601 formatting.
+- **Venue & Capacity:** Auditorium/Hall name and seat limit (minimum 1).
+- **Multiline Description:** Detailed agenda, speaker highlights, and prerequisites.
+- **Triple Banner Selection System:**
+  1. **Upload from Computer:** Choose any local file (PNG, JPG, WebP up to 5MB); automatically converted to Base64 data URI.
+  2. **External Image URL:** Paste any direct web link (e.g. Unsplash or Cloud Storage).
+  3. **Quick Tech Presets:** 4 instant pre-styled banners (AI & Cloud, Hackathon & Dev, Mobile & Web, Community Meetup).
+  4. Live preview thumbnail with a "Clear Image" button.
+- **Automatic Cache Invalidation:** Instantly purges Redis cache pattern `events:*` upon creation.
+
+#### ✏️ Event Modification (Admin Modal)
+- Seamless modal allowing editing of title, category, date, venue, capacity, description, and banner image.
+- **Strict Capacity Reduction Protection:** Prevents admins from reducing an event's seat capacity below the number of already registered attendees:
+  $$\text{New Capacity} \ge \text{Current Confirmed Registrations}$$
+  If attempted, the backend rejects with HTTP `400 Bad Request` to protect existing attendee bookings.
+- Real-time updates reflected across the entire public platform and admin panel.
+
+#### 🗑️ Event Deletion & Cascade Clean-Up (Danger Zone)
+- Dedicated **Danger Zone Modal** requiring explicit confirmation.
+- Displays event title and attendee count warning.
+- **Cascade Deletion:** Automatically deletes all associated confirmed registration records (`Registration.deleteMany({ event: eventId })`) to prevent orphan records.
+- Automatically purges cached listings from Redis.
+
+#### 👥 Live Attendee Inspection & Check-In Roster
+- Full registered attendees table with:
+  - `#` (Sequential Index & Pagination offset)
+  - Attendee Full Name
+  - Attendee Registered Email
+  - Registration Timestamp (Date & Time formatted)
+  - Confirmation Status (`CONFIRMED` badge)
+- **Zero-Attendee Empty State:** Friendly dashed box when an event has 0 attendees registered yet.
+- **Server-Side Pagination:** Handles large events effortlessly (50 attendees per page with Previous / Next navigation).
+
+#### 📢 Batch Broadcast & Announcements
+- Administrators can trigger batch notifications for any event via `POST /api/reminders/broadcast/:eventId` with a custom note, notifying all registered attendees.
+
+#### 📈 Platform Analytics (`GET /api/events/stats`)
+- Aggregated insights including:
+  - Total events created
+  - Total confirmed registrations across the entire platform
+  - Upcoming events vs. Past events count
+  - Distribution breakdown by category (event count, total capacity, total registered)
+  - Top 5 most popular events ranked by attendee count
+
+---
+
+### 3. Dual Authentication & Security Engine
+
+```
+       ┌─────────────────────────────────────────────────────────────┐
+       │                 User Authentication Choice                  │
+       └──────────────────────────────┬──────────────────────────────┘
+                                      │
+            ┌─────────────────────────┴─────────────────────────┐
+            ▼                                                   ▼
+ ┌──────────────────────┐                            ┌──────────────────────┐
+ │  Passwordless Email  │                            │   Classic Email &    │
+ │       OTP Mode       │                            │    Password Mode     │
+ └──────────┬───────────┘                            └──────────┬───────────┘
+            │                                                   │
+   crypto.randomInt()                                    bcryptjs (salt: 12)
+   HMAC-SHA256 Hashing                                   Email verification
+   60s Cooldown & 5-Attempt Limit                        Rate limited (40/15m)
+            │                                                   │
+            └─────────────────────────┬─────────────────────────┘
+                                      │
+                                      ▼
+             ┌─────────────────────────────────────────────────┐
+             │       Cryptographic Session Establishment       │
+             ├─────────────────────────────────────────────────┤
+             │ • Short-Lived Access Token (15-min JWT)         │
+             │ • Rotating Refresh Token (7-day cryptographic)  │
+             │ • httpOnly, SameSite, Secure Cookies            │
+             │ • Session DB Tracking (IP, User-Agent, Revoke)  │
+             │ • Automatic Admin Allowlist Sync                │
+             └─────────────────────────────────────────────────┘
+```
+
+1. **Self-Hosted Passwordless Email OTP:**
+   - 6-digit random code generated via `crypto.randomInt(100000, 1000000)`.
+   - Salted **HMAC-SHA256** hash storage — plaintext OTPs are **never** stored in the database.
+   - Atomically marked consumed (`isUsed: true`) upon verification (immune to replay attacks).
+   - Maximum 5 attempts per challenge before automatic invalidation.
+   - 60-second cooldown timer between OTP generation requests.
+   - Dispatched via Resend API or SMTP (with mock console output fallback during local testing).
+2. **Classic Password Authentication:**
+   - Secure account registration with `bcryptjs` password hashing (salt rounds: 12).
+   - Pre-login email check (`/api/auth/check-email`) that seamlessly redirects unregistered users to signup with email prefilled.
+3. **Dual-Token System & Token Rotation:**
+   - 15-minute JWT access token + 7-day refresh token stored in MongoDB `Session` collection.
+   - Token rotation on every refresh request (`/api/auth/refresh`).
+   - Replay attack detection: If an invalidated refresh token is reused, all active sessions for that user are immediately revoked.
+   - Cross-domain support: Dual cookie (`gdg_access_token`, `gdg_refresh_token`) and `Authorization: Bearer <token>` support for separate frontend/backend deployments.
+4. **Rate Limiting Protection:**
+   - Global API limiter: 300 requests per 15-minute window (`/api/*`).
+   - Authentication limiter: 40 requests per 15-minute window (`/api/auth/*`).
+
+---
+
+### 4. Neo-Brutalist Visual Design System
+
+The application strictly implements the design system of [gdgrbu.app](https://www.gdgrbu.app):
+- **High-Contrast Google Palette:**
+  - 🔵 Google Blue: `#4285F4` (Soft: `#E8F0FE`)
+  - 🔴 Google Red: `#EA4335` (Soft: `#FCE8E6`)
+  - 🟡 Google Yellow: `#FBBC04` (Soft: `#FEF7E0`)
+  - 🟢 Google Green: `#34A853` (Soft: `#E6F4EA`)
+  - 🟣 GDG Purple: `#7C3AED`
+- **Brutalist Border & Shadows:** Bold solid black borders (`2px - 3px solid #000000`) paired with sharp offset drop shadows (`4px 4px 0px #000000`, `8px 8px 0px #000000`).
+- **Typography:**
+  - Headers: Retro pixel styling (`'Press Start 2P'`, cursive/pixel display).
+  - Code & Logistics: Technical monospace (`Space Mono`, monospace).
+  - Body Text: Clean readability (`Inter`, `Outfit`, sans-serif).
+- **Micro-Animations & Delighters:**
+  - Tactile button press displacement (`transform: translate(2px, 2px)` on active).
+  - Celebratory confetti burst on event booking (`canvas-confetti`).
+  - Ticket tear notch cutouts and dashed perforation dividers.
+  - Custom retro Preloader with spinning brand icon.
+  - Branded retro 404 page with return routing.
+
+---
+
+### 5. Performance, Caching & Resilience
+
+- **Redis Caching Layer:** Public event queries (`/api/events`) are cached in Redis with a 60-second TTL.
+- **Intelligent Cache Invalidation:** The cache pattern `events:*` is automatically purged whenever an event is created, updated, or deleted, or when registrations change.
+- **In-Memory Redis Fallback:** If Redis is offline or not installed, the application automatically falls back to an in-memory cache without errors or performance drops.
+- **Embedded In-Memory MongoDB:** If no local MongoDB service is running, the backend boots an embedded in-memory MongoDB server via `mongodb-memory-server` and automatically seeds sample events and accounts.
+
+---
+
+## 🏗️ System Architecture & Directory Structure
 
 ```
 gdg-eventhub/
+├── 404.html                     # Standalone fallback 404 page
+├── api/
+│   └── index.js                 # Vercel Serverless Function entrypoint
 ├── backend/
-│   ├── config/          # Database (MongoDB) & Redis cache configs
-│   ├── middleware/      # JWT verification, Admin allowlist, Rate limiting
-│   ├── models/          # User, Event, Registration, Otp, Session, Reminder
-│   ├── routes/          # Auth, Events, Admin, Registrations, Reminders, User
-│   ├── services/        # Email service (Resend / SMTP)
-│   ├── tests/           # Automated system & security test suite (38 tests)
-│   ├── utils/           # Cryptographic security helpers (HMAC, hashing)
-│   ├── Dockerfile       # Backend container definition
-│   └── server.js        # Express application entrypoint
-│
+│   ├── config/
+│   │   ├── db.js                # MongoDB connection (with in-memory fallback)
+│   │   └── redis.js             # Redis client & transparent cache layer
+│   ├── middleware/
+│   │   └── auth.js              # JWT verification, Admin allowlist guard
+│   ├── models/
+│   │   ├── Event.js             # Event schema with category enums & capacity
+│   │   ├── Otp.js               # HMAC-SHA256 hashed OTP challenges
+│   │   ├── Registration.js      # Event attendee records with QR passes
+│   │   ├── Reminder.js          # Scheduled attendee reminder records
+│   │   ├── Session.js           # Refresh token sessions with revocation
+│   │   └── User.js              # User profiles with bcrypt password hashing
+│   ├── routes/
+│   │   ├── admin.js             # Dedicated administrative operations
+│   │   ├── auth.js              # OTP, password login, refresh rotation, logout
+│   │   ├── events.js            # Public event browsing, details, admin CRUD
+│   │   ├── registrations.js     # Event booking, unregister, QR pass generation
+│   │   ├── reminders.js         # Event reminder scheduling & broadcasts
+│   │   └── user.js              # User profile retrieval and updating
+│   ├── services/
+│   │   └── emailService.js      # Resend API & SMTP email dispatching
+│   ├── tests/
+│   │   └── system.test.js       # Comprehensive test suite (38 assertions)
+│   ├── utils/
+│   │   └── security.js          # HMAC-SHA256, token generation, admin checks
+│   ├── Dockerfile               # Production backend container definition
+│   ├── seed.js                  # Database seeder script
+│   └── server.js                # Express app entrypoint, rate limiters, CORS
 ├── frontend/
 │   ├── src/
-│   │   ├── api/         # Axios instance with cookie & Bearer token support
-│   │   ├── components/  # Navbar, Footer, EventCard, QRModal, ProtectedRoute
-│   │   ├── context/     # AuthContext (OTP, login, session refresh)
-│   │   ├── pages/       # Home, Events, EventDetails, AdminDashboard, MyEvents, Login, Register
-│   │   └── index.css    # Neo-Brutalism design system & utility classes
-│   ├── Dockerfile       # Production Nginx container
-│   ├── vercel.json      # Client-side SPA routing rewrites
-│   └── vite.config.js   # Vite 8 bundler configuration
-│
-└── docker-compose.yml   # Multi-service composition (Node + React + Mongo + Redis)
+│   │   ├── api/
+│   │   │   └── axios.js         # Axios instance with credentials & Bearer headers
+│   │   ├── components/
+│   │   │   ├── EventCard.jsx    # Brutalist event card with seat progress
+│   │   │   ├── Footer.jsx       # Google Developer Groups branded footer
+│   │   │   ├── Navbar.jsx       # Navigation with auth status & role badges
+│   │   │   ├── Preloader.jsx    # Retro branded loading animation
+│   │   │   ├── ProtectedRoute.jsx # Route authentication guard
+│   │   │   └── QRModal.jsx      # Vintage scannable ticket modal (Print/Download)
+│   │   ├── context/
+│   │   │   └── AuthContext.jsx  # Global auth state, OTP, sessions, refresh
+│   │   ├── pages/
+│   │   │   ├── AdminDashboard.jsx # Master-detail admin event & attendee portal
+│   │   │   ├── EventDetails.jsx # Detailed event logistics & registration
+│   │   │   ├── Events.jsx       # Searchable, filterable event directory
+│   │   │   ├── Home.jsx         # Neo-brutalist landing page with terminal simulator
+│   │   │   ├── Login.jsx        # Dual-mode login (Email OTP or Password)
+│   │   │   ├── MyEvents.jsx     # User dashboard with QR passes
+│   │   │   ├── NotFound.jsx     # 404 error page
+│   │   │   └── Register.jsx     # Account creation with OTP verification
+│   │   ├── App.jsx              # Client router and toast notifications
+│   │   ├── index.css            # Neo-Brutalism design system & utility classes
+│   │   └── main.jsx             # React 19 root bootstrap
+│   ├── Dockerfile               # Production frontend container
+│   ├── vercel.json              # Client routing rewrites
+│   └── vite.config.js           # Vite 8 bundler configuration
+├── docker-compose.yml           # Multi-service composition (Node, React, Mongo, Redis)
+├── package.json                 # Monorepo scripts & dependencies
+├── render.yaml                  # Render deployment configuration
+└── vercel.json                  # Unified fullstack Vercel routing rules
 ```
 
 ---
 
-## ⚡ Key Features
+## 🗄️ Database Schemas & Data Models
 
-### 1. Authentication & Security
-- **Self-Hosted Passwordless Email OTP:** 6-digit random code generated via `crypto.randomInt` and hashed with **HMAC-SHA256**. The plaintext OTP is **never** stored in the database.
-- **Single-Use & Brute-Force Defense:** OTP challenges are atomically marked consumed on verification with a maximum 5-attempt limit and 60-second request cooldown.
-- **Classic Email/Password Option:** Supports traditional password signup/login with `bcryptjs` (salt rounds: 12).
-- **Dual-Token System:** Short-lived 15-minute JWT access token + 7-day cryptographic refresh token stored in `httpOnly` secure cookies with database session tracking.
-- **Cross-Domain Header Support:** Issues `Authorization: Bearer <token>` in tandem with cookies for seamless hosting across separate domains (e.g., Vercel frontend + Render backend).
+### 1. `User` Schema
+| Field | Type | Attributes | Description |
+| :--- | :--- | :--- | :--- |
+| `name` | String | Required, Trimmed | Full display name of the user |
+| `email` | String | Required, Unique, Lowercase | User email address |
+| `password` | String | Optional, Selected: false | Bcrypt hashed password (salt: 12) |
+| `role` | String | Enum: `['user', 'admin']` | User permissions role |
+| `avatar` | String | Optional | Avatar image URL |
+| `authProvider` | String | Enum: `['otp', 'local', 'google']` | Initial signup authentication method |
+| `emailVerified` | Boolean | Default: `true` | Verified email status |
+| `emailVerifiedAt`| Date | Optional | Timestamp of email verification |
 
-### 2. Event CRUD & Business Rules
-- **Schema Validation:** Strict Mongoose schemas validating title, description, category enum (`Workshop`, `Hackathon`, `Tech Talk`, `Meetup`, `Conference`, `Bootcamp`, `Other`), date/time, venue, and seat capacity.
-- **Capacity Lock:** Prevents lowering an event's capacity below the number of already registered attendees.
-- **Atomic Registration:** Rejects duplicate registrations and blocks registration if the event is full or in the past.
-- **Live Seat Counter:** Automatically tracks remaining seats (`capacity - confirmedRegistrations`).
+### 2. `Event` Schema
+| Field | Type | Attributes | Description |
+| :--- | :--- | :--- | :--- |
+| `title` | String | Required, Trimmed | Title of the event |
+| `description` | String | Required | Full multiline event agenda and prerequisites |
+| `date` | Date | Required | Scheduled event date and time |
+| `venue` | String | Required | Location or auditorium on campus |
+| `capacity` | Number | Required, Min: 1 | Maximum allowable attendees |
+| `category` | String | Enum: `['Workshop', 'Hackathon', 'Tech Talk', 'Meetup', 'Conference', 'Bootcamp', 'Other']` | Classification |
+| `registrationCount`| Number | Default: 0 | Live count of confirmed attendees |
+| `image` | String | Optional | Banner image data URI or external URL |
+| `createdBy` | ObjectId | Ref: `User` | Admin user who published the event |
 
-### 3. Private Admin Management Portal (`/admin`)
-- **Access Control:** Restricted via server-side allowlist (`ADMIN_EMAILS` environment variable). Ordinary users receive HTTP `403 Forbidden`.
-- **Event Creation Modal:** Form with title, category, date/time picker, venue, seats, multiline description, and banner image selector.
-- **Banner Image Selector:** Supports uploading a file from your computer (auto-converted to data URI), pasting an external URL, or selecting from curated GDG Tech Presets.
-- **Edit & Delete Events:** Organizers can update event details in real-time or delete events (with a Danger Zone confirmation dialog that cleans up attendee records).
-- **Attendee Overview:** Paginated view of confirmed attendees for each event with attendee names, emails, registration dates, and statuses.
+### 3. `Registration` Schema
+| Field | Type | Attributes | Description |
+| :--- | :--- | :--- | :--- |
+| `user` | ObjectId | Ref: `User`, Required | Registered user reference |
+| `event` | ObjectId | Ref: `Event`, Required | Target event reference |
+| `qrCode` | String | Required | Base64 PNG data URI of dynamic scannable QR pass |
+| `status` | String | Enum: `['confirmed', 'cancelled']` | Registration status |
+| *Indexes* | Compound | `{ user: 1, event: 1 }` | Prevents duplicate active registrations |
 
-### 4. Attendee Experience & QR Tickets
-- **Event Discovery:** Search by keywords, filter by category tags, and sort by date ascending/descending or title.
-- **My Registrations (`/my-events`):** Personal dashboard displaying all booked events.
-- **Cryptographic QR Code Passes:** Generates dynamic, downloadable QR codes containing verification metadata for venue check-ins.
-- **One-Click Unregister:** Allows attendees to cancel a registration, instantly freeing up a seat for others.
+### 4. `Otp` Schema
+| Field | Type | Attributes | Description |
+| :--- | :--- | :--- | :--- |
+| `email` | String | Required, Lowercase | Recipient email address |
+| `otpHash` | String | Required | Salted HMAC-SHA256 hash of the 6-digit code |
+| `attempts` | Number | Default: 0, Max: 5 | Failed verification attempt counter |
+| `isUsed` | Boolean | Default: false | Consumption flag (replay attack prevention) |
+| `expiresAt` | Date | Required (10 min TTL) | Expiration timestamp |
 
-### 5. Bonus Features
-- 🔔 **Event Reminders:** Users can subscribe to reminders; admins can trigger batch email broadcasts to all registered attendees.
-- ⏱️ **Rate Limiting:** Protects `/api/` (300 req/15m) and authentication endpoints (40 req/15m) using `express-rate-limit`.
-- ⚡ **Redis Caching:** Transparently caches `/api/events` queries with 60s TTL and auto-purges on any event creation, update, or deletion. Includes an in-memory fallback if Redis is offline.
-- 🐳 **Dockerized:** Full containerization via `docker-compose.yml` for unified one-command startup.
-- 📊 **Analytics Dashboard:** `GET /api/events/stats` aggregates total registrations, upcoming vs. past events, category distributions, and top 5 most popular events.
+### 5. `Session` Schema
+| Field | Type | Attributes | Description |
+| :--- | :--- | :--- | :--- |
+| `user` | ObjectId | Ref: `User`, Required | User reference |
+| `refreshTokenHash` | String | Required | Cryptographic hash of the refresh token |
+| `isRevoked` | Boolean | Default: false | Invalidation flag |
+| `expiresAt` | Date | Required (7 days) | Session expiry |
+| `userAgent` | String | Optional | Client browser User-Agent |
+| `ipAddress` | String | Optional | Request client IP |
 
 ---
 
-## 🔌 API Reference
+## 🔌 Complete REST API Reference
 
-### Authentication (`/api/auth`)
+### Authentication Endpoints (`/api/auth`)
+
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/auth/request-otp` | Public | Request a 6-digit email OTP |
-| `POST` | `/api/auth/verify-otp` | Public | Verify OTP, establish session, return user & token |
-| `POST` | `/api/auth/login` | Public | Sign in using email and password |
-| `POST` | `/api/auth/register` | Public | Register new account with name, email, and password |
-| `POST` | `/api/auth/refresh` | Public (Cookie) | Rotate refresh token and issue new access token |
-| `POST` | `/api/auth/logout` | Authenticated | Revoke refresh session and clear cookies |
-| `GET` | `/api/auth/me` | Authenticated | Retrieve authenticated user profile and admin role |
+| `POST` | `/api/auth/check-email` | Public | Check if email is already registered before login |
+| `POST` | `/api/auth/request-otp` | Public | Request a cryptographically secure 6-digit email OTP |
+| `POST` | `/api/auth/send-otp` | Public | Alias for `request-otp` for backwards compatibility |
+| `POST` | `/api/auth/verify-otp` | Public | Verify 6-digit OTP, establish session, issue tokens |
+| `POST` | `/api/auth/login` | Public | Traditional password sign-in with bcrypt verification |
+| `POST` | `/api/auth/register` | Public | Traditional account registration with password |
+| `POST` | `/api/auth/refresh` | Cookie | Rotate refresh token and issue new 15-minute access token |
+| `POST` | `/api/auth/logout` | Authenticated | Revoke refresh session and clear `httpOnly` cookies |
+| `GET` | `/api/auth/me` | Authenticated | Retrieve authenticated user profile and admin status |
 
-### Events (`/api/events`)
+### Public & Protected Events (`/api/events`)
+
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/events` | Public | Browse events (search, category, upcoming, sort, pagination) |
-| `GET` | `/api/events/:id` | Public | Get single event details with remaining spots |
-| `POST` | `/api/events` | Admin Only | Create a new event |
-| `PUT` | `/api/events/:id` | Admin Only | Update an event (validates capacity) |
-| `DELETE` | `/api/events/:id` | Admin Only | Delete an event and associated registrations |
-| `GET` | `/api/events/stats` | Admin Only | Get analytics (categories, total attendees, popular events) |
+| `GET` | `/api/events` | Public | List events with search, category filter, sort & pagination |
+| `GET` | `/api/events/:id` | Public | Retrieve single event details with live spots remaining |
+| `POST` | `/api/events` | Admin Only | Create a new event and invalidate Redis cache |
+| `PUT` | `/api/events/:id` | Admin Only | Update an event (validates capacity $\ge$ current attendees) |
+| `DELETE`| `/api/events/:id` | Admin Only | Permanently delete event and cascade remove registrations |
+| `GET` | `/api/events/stats` | Admin Only | Platform statistics, popular events, and category metrics |
 
-### Registrations (`/api/registrations`)
+### Registrations & Passes (`/api/registrations`)
+
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/registrations/events/:id/register` | Authenticated | Register for an event (enforces capacity & duplicates) |
-| `DELETE` | `/api/registrations/events/:id/unregister` | Authenticated | Cancel registration and restore event capacity |
-| `GET` | `/api/registrations/my-events` | Authenticated | Get current user's registered events with QR passes |
-| `GET` | `/api/registrations/check/:eventId` | Authenticated | Check if current user is registered for an event |
+| `POST` | `/api/registrations/events/:id/register` | Authenticated | Register for an event, verify capacity, generate QR pass |
+| `DELETE`| `/api/registrations/events/:id/unregister` | Authenticated | Cancel registration and restore capacity spot |
+| `GET` | `/api/registrations/my-events` | Authenticated | Retrieve all events registered by the current user with QR passes |
+| `GET` | `/api/registrations/check/:eventId` | Authenticated | Check if current user is confirmed for a specific event |
 
-### Admin Operations (`/api/admin`)
+### Dedicated Admin Operations (`/api/admin`)
+
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `GET` | `/api/admin/events` | Admin Only | Get all events with live confirmed registration counts |
-| `GET` | `/api/admin/events/:eventId/registrations` | Admin Only | Get attendee list for a specific event (paginated) |
+| `GET` | `/api/admin/events` | Admin Only | Get all events with live confirmed attendee counts |
+| `GET` | `/api/admin/events/:eventId/registrations` | Admin Only | Get paginated attendee list for an event (`page`, `limit`) |
 | `POST` | `/api/admin/events` | Admin Only | Create event alias |
 | `PUT` | `/api/admin/events/:eventId` | Admin Only | Update event alias |
-| `DELETE` | `/api/admin/events/:eventId` | Admin Only | Delete event alias |
+| `DELETE`| `/api/admin/events/:eventId` | Admin Only | Delete event alias |
 
-### Reminders (`/api/reminders`)
+### Reminders & Broadcasts (`/api/reminders`)
+
 | Method | Endpoint | Access | Description |
 | :--- | :--- | :--- | :--- |
-| `POST` | `/api/reminders/:eventId` | Authenticated | Schedule an automated event reminder |
-| `GET` | `/api/reminders/my-reminders` | Authenticated | Get user's active reminders |
-| `DELETE` | `/api/reminders/:eventId` | Authenticated | Cancel an event reminder |
-| `POST` | `/api/reminders/broadcast/:eventId` | Admin Only | Broadcast reminder notification to all registered attendees |
+| `POST` | `/api/reminders/:eventId` | Authenticated | Schedule an automated reminder 24 hours prior to event |
+| `GET` | `/api/reminders/my-reminders` | Authenticated | Retrieve current user's active reminders |
+| `DELETE`| `/api/reminders/:eventId` | Authenticated | Cancel a scheduled event reminder |
+| `POST` | `/api/reminders/broadcast/:eventId` | Admin Only | Broadcast batch reminder notification to all registered attendees |
+
+### User Profile Management (`/api/user`)
+
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/user/profile` | Authenticated | Get current user's account details and admin status |
+| `PATCH`| `/api/user/profile` | Authenticated | Update allowed profile fields (name, avatar) |
+
+### Health & Diagnostics (`/api/health`)
+
+| Method | Endpoint | Access | Description |
+| :--- | :--- | :--- | :--- |
+| `GET` | `/api/health` | Public | Real-time healthcheck for MongoDB, Redis, rate-limiter, uptime |
 
 ---
 
@@ -190,23 +491,24 @@ gdg-eventhub/
 Create a `.env` file inside `backend/` based on `backend/.env.example`:
 
 ```env
-# Server
+# Server Configuration
 PORT=5000
 NODE_ENV=development
 FRONTEND_URL=http://localhost:5173
 
 # Database Connection (MongoDB Atlas in production, local in dev)
+# Leave blank to automatically use embedded in-memory MongoDB!
 MONGODB_URI=mongodb://localhost:27017/gdg-eventhub
 
-# Security & Secrets (Use 32+ character random strings in production)
-JWT_ACCESS_SECRET=your_super_secret_jwt_access_key
-JWT_REFRESH_SECRET=your_super_secret_jwt_refresh_key
-OTP_HASH_SECRET=your_super_secret_otp_hash_key
-JWT_SECRET=your_super_secret_fallback_key
+# Security & Cryptographic Keys (Use 32+ character strings in production)
+JWT_ACCESS_SECRET=your_super_secret_jwt_access_key_min_32_chars
+JWT_REFRESH_SECRET=your_super_secret_jwt_refresh_key_min_32_chars
+OTP_HASH_SECRET=your_super_secret_otp_hash_key_min_32_chars
+JWT_SECRET=fallback_jwt_secret_key
 JWT_ACCESS_EXPIRE=15m
 
 # Admin Authorization Allowlist (Comma-separated emails)
-ADMIN_EMAILS=admin@gdgrbu.app,your_email@example.com
+ADMIN_EMAILS=selotechaitanya09@gmail.com,admin@gdgrbu.app,your_email@gmail.com
 
 # Email Delivery: Resend API (Recommended)
 RESEND_API_KEY=re_your_resend_api_key
@@ -217,7 +519,7 @@ EMAIL_SERVICE=gmail
 EMAIL_USER=your_email@gmail.com
 EMAIL_PASS=your_16_digit_app_password
 
-# Optional Redis Connection
+# Optional Redis Connection (Falls back to in-memory cache if omitted)
 REDIS_URL=redis://localhost:6379
 ```
 
@@ -225,116 +527,129 @@ REDIS_URL=redis://localhost:6379
 
 ## 💻 Getting Started Locally
 
-### 1. Clone & Install Dependencies
-```bash
-git clone https://github.com/YOUR_USERNAME/gdg-eventhub.git
-cd gdg-eventhub
+### Quick Start (Zero-Config In-Memory Mode)
 
-# Install root, backend, and frontend dependencies
+The project includes an automatic **In-Memory MongoDB fallback**. If you do not have MongoDB or Redis installed locally, the backend automatically boots an in-memory database and auto-seeds sample GDG events and accounts!
+
+```bash
+# 1. Clone the repository
+git clone https://github.com/selotechaitanya-svg/gdgback.git
+cd gdgback
+
+# 2. Install all dependencies across root, backend, and frontend
 npm install
 cd backend && npm install
 cd ../frontend && npm install
 cd ..
-```
 
-### 2. Run Database Seeding (Optional)
-```bash
-cd backend
-npm run seed
-cd ..
-```
-> **Zero-Config In-Memory Mode:** If you do not have a local MongoDB service running, the backend will automatically spin up an embedded **in-memory MongoDB instance** and auto-seed sample GDG events and accounts automatically!
-
-### 3. Start Development Servers
-From the root directory:
-```bash
+# 3. Start fullstack development servers concurrently
 npm run dev
 ```
-- **Frontend:** http://localhost:5173
+
+- **Frontend App:** http://localhost:5173
 - **Backend API:** http://localhost:5000
-- **Healthcheck:** http://localhost:5000/api/health
-- **Admin Dashboard:** http://localhost:5173/admin
+- **System Healthcheck:** http://localhost:5000/api/health
+- **Admin Management Portal:** http://localhost:5173/admin
 
 ---
 
-## 🧪 Running Automated Tests
+### Manual Step-by-Step Installation
 
-The repository includes a comprehensive, standalone end-to-end security and business logic test suite:
+#### 1. Setup Backend
+```bash
+cd backend
+npm install
+cp .env.example .env   # Configure your environment variables
+npm run seed          # Seeds sample events and accounts into MongoDB
+npm run dev           # Runs backend with Node --watch
+```
+
+#### 2. Setup Frontend
+```bash
+cd frontend
+npm install
+npm run dev           # Starts Vite dev server on port 5173
+```
+
+---
+
+## 🧪 Running Automated System Tests
+
+The repository includes a standalone security and business logic test suite validating all 38 system criteria:
 
 ```bash
 cd backend
 npm test
 ```
 
-### What is tested (38 Assertions, 0 Failures):
-- ✅ Cryptographic OTP generation and HMAC-SHA256 hashing
-- ✅ Zero plaintext exposure in API payloads
-- ✅ Attempt counters and automatic invalidation after 5 failures
-- ✅ 60-second cooldown rate limiting
-- ✅ Single-use consumption (replay attack prevention)
-- ✅ Short-lived JWT access tokens & refresh token rotation
-- ✅ Server-side admin allowlist (`ADMIN_EMAILS`) enforcement
-- ✅ 401 Unauthorized & 403 Forbidden boundary conditions
-- ✅ Real database attendee counting and empty state handling
-- ✅ Duplicate registration and event capacity rejection
+### Test Coverage (38 Tests, 0 Failures):
+- ✅ **Cryptographic OTP Integrity:** 6-digit generation and HMAC-SHA256 salted hashing
+- ✅ **Zero Plaintext Leakage:** Plaintext OTP is never returned in API payloads or persisted in DB
+- ✅ **Brute-Force Invalidation:** Automatic invalidation after 5 incorrect verification attempts
+- ✅ **Request Cooldown:** 60-second rate-limit between consecutive OTP requests
+- ✅ **Replay Attack Prevention:** Single-use token consumption marks challenges consumed
+- ✅ **Token Lifecycle:** 15-minute JWT access tokens and 7-day refresh token rotation
+- ✅ **Admin Allowlist Guarding:** Server-side verification against `ADMIN_EMAILS`
+- ✅ **Boundary Conditions:** HTTP 401 Unauthorized and 403 Forbidden enforcement
+- ✅ **Capacity Lock Rules:** Rejection of capacity reductions below confirmed registrations
+- ✅ **Duplicate Registrations:** Prevention of multiple active bookings by the same user
 
 ---
 
 ## 🐳 Docker Deployment
 
-To launch the full stack (Frontend, Backend, MongoDB, Redis) via Docker Compose:
+Run the complete multi-service architecture (Frontend, Backend, MongoDB, Redis) with a single command:
 
 ```bash
 docker-compose up --build
 ```
-- Application: http://localhost:3000
-- API Server: http://localhost:5000
-- Stop containers: `docker-compose down`
+
+- **Frontend Application:** http://localhost:3000
+- **Backend REST API:** http://localhost:5000
+- **MongoDB Database:** `localhost:27017`
+- **Redis Cache:** `localhost:6379`
+- **Stop Containers:** `docker-compose down`
 
 ---
 
 ## 🚀 Production Deployment Guide
 
-### 🏆 Option A: Deploy Entire Fullstack Website on Vercel (Fastest & Recommended!)
+### Option A: Fullstack Vercel Deployment (Recommended)
 
-You can deploy the **entire application (React Frontend + Express API)** on **Vercel** with **one single project and one URL**:
-- ⚡ **Instant Global CDN** — 0 cold starts, loads in under a second.
-- 🔗 **Single Domain** (e.g. `https://gdg-eventhub.vercel.app`) — Zero CORS issues and seamless cookie handling.
-- 💸 **100% Free** — Fully covered under Vercel's generous hobby tier.
+You can host both the **React Frontend** and **Express API** on **Vercel** under **one single URL** with zero CORS complexity:
 
-#### Step 1: Import on Vercel
-1. Go to [Vercel Dashboard](https://vercel.com/new).
-2. Click **Import** next to your GitHub repository (`selotechaitanya-svg/gdgback`).
-3. Keep default settings (Vercel automatically detects [`vercel.json`](vercel.json)).
-
-#### Step 2: Add Environment Variables
-Under **Environment Variables**, add:
-- `MONGODB_URI`: `mongodb+srv://savitaselote2_db_user:6mfCvZEn9Q6VwO54@gdg.hkjz12r.mongodb.net/gdg-eventhub?retryWrites=true&w=majority&appName=GDG`
-- `NODE_ENV`: `production`
-- `JWT_ACCESS_SECRET`: `c83f9821a0f9b33a593e92e0df401825b8ad28f09d845e28a5`
-- `JWT_REFRESH_SECRET`: `d901a1829e01bc448e89f81239857201948ba985ef0192384a`
-- `OTP_HASH_SECRET`: `72384f8b9192485e9823059178234857291039485720193847`
-- `ADMIN_EMAILS`: `selotechaitanya09@gmail.com,admin@gdgrbu.app,chaitanya@gdgrbu.app`
-
-#### Step 3: Deploy
-Click **Deploy**! In about 60 seconds, your site is live with full Neo-Brutalism UI, active MongoDB Atlas database, and registration capabilities.
+1. Import the repository (`selotechaitanya-svg/gdgback`) in [Vercel Dashboard](https://vercel.com/new).
+2. Add the following **Environment Variables** in Vercel project settings:
+   - `MONGODB_URI`: Your MongoDB Atlas connection URI
+   - `NODE_ENV`: `production`
+   - `JWT_ACCESS_SECRET`: 32+ character random secret
+   - `JWT_REFRESH_SECRET`: 32+ character random secret
+   - `OTP_HASH_SECRET`: 32+ character random secret
+   - `ADMIN_EMAILS`: `selotechaitanya09@gmail.com,admin@gdgrbu.app`
+3. Click **Deploy**! Vercel automatically maps `/api/*` to the Express backend and all other routes to the React 19 SPA via [`vercel.json`](vercel.json).
 
 ---
 
-### Option B: Alternative Single-Agency Deployment (Render)
+### Option B: Render Deployment
 
-If you prefer Render:
-1. Go to [Render Dashboard](https://dashboard.render.com/) → **New +** → **Web Service**.
+1. Create a **New Web Service** on [Render](https://dashboard.render.com/).
 2. Connect your GitHub repository.
-3. Set **Build Command**: `npm run build:render` and **Start Command**: `npm start`.
-4. Add the same environment variables as above and click **Deploy**.
+3. Configure the service:
+   - **Build Command:** `npm run build:render`
+   - **Start Command:** `npm start`
+4. Add the environment variables from `.env` and click **Deploy**.
 
 ---
 
-## 👥 Recruitment Contact
+## 👥 Authors & Recruitment Contact
 
-- **Chaitanya Selote** — Developer & Project Lead: `+91 9699910273`
+- **Chaitanya Selote** — Full Stack Developer & Project Lead
+  - **Phone:** `+91 9699910273`
+  - **Email:** `selotechaitanya09@gmail.com`
+  - **Portfolio:** [chaitanyaportfoliov2.vercel.app](https://chaitanyaportfoliov2.vercel.app/)
 
 ---
 
-Built with ❤️ for **Google Developer Groups on Campus · Shri Ramdeobaba University**.
+<div align="center">
+  <strong>Built with ❤️ for Google Developer Groups on Campus · Shri Ramdeobaba University</strong>
+</div>
