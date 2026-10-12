@@ -2,7 +2,10 @@ const express = require('express');
 const mongoose = require('mongoose');
 const Event = require('../models/Event');
 const Registration = require('../models/Registration');
+const User = require('../models/User');
+const Session = require('../models/Session');
 const { protect, requireAdmin } = require('../middleware/auth');
+const { isAuthorizedAdminEmail } = require('../utils/security');
 
 const router = express.Router();
 
@@ -244,6 +247,389 @@ router.delete('/events/:eventId', async (req, res) => {
     });
   } catch (error) {
     return res.status(500).json({ success: false, message: 'Server error deleting event.' });
+  }
+});
+
+// ============================================================================
+// HELPER: USER AGENT PARSER
+// ============================================================================
+function parseDeviceAgent(userAgent = '') {
+  if (!userAgent) return 'Unknown Device';
+  let browser = 'Browser';
+  let os = 'Unknown OS';
+
+  if (userAgent.includes('Edg/')) browser = 'Edge';
+  else if (userAgent.includes('Chrome/')) browser = 'Chrome';
+  else if (userAgent.includes('Firefox/')) browser = 'Firefox';
+  else if (userAgent.includes('Safari/') && !userAgent.includes('Chrome/')) browser = 'Safari';
+  else if (userAgent.includes('MSIE') || userAgent.includes('Trident/')) browser = 'IE';
+
+  if (userAgent.includes('Windows')) os = 'Windows';
+  else if (userAgent.includes('Macintosh') || userAgent.includes('Mac OS')) os = 'macOS';
+  else if (userAgent.includes('iPhone')) os = 'iOS (iPhone)';
+  else if (userAgent.includes('iPad')) os = 'iOS (iPad)';
+  else if (userAgent.includes('Android')) os = 'Android';
+  else if (userAgent.includes('Linux')) os = 'Linux';
+
+  return `${browser} on ${os}`;
+}
+
+// ============================================================================
+// REGISTERED ACCOUNTS & DATABASE USERS SECTION
+// ============================================================================
+
+/**
+ * @route   GET /api/admin/users
+ * @desc    Get all accounts registered in the database with stats, activity & event counts
+ * @access  Private / Administrator Only
+ */
+router.get('/users', async (req, res) => {
+  try {
+    const search = req.query.search ? req.query.search.trim() : '';
+    const roleFilter = req.query.role; // 'all', 'admin', 'user'
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = parseInt(req.query.limit, 10) === 0 ? 0 : Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 50));
+
+    // Base query
+    const query = {};
+    if (search) {
+      query.$or = [
+        { name: { $regex: search, $options: 'i' } },
+        { email: { $regex: search, $options: 'i' } },
+      ];
+    }
+    if (roleFilter && roleFilter !== 'all') {
+      query.role = roleFilter;
+    }
+
+    let usersQuery = User.find(query).sort({ createdAt: -1 });
+    if (limit > 0) {
+      usersQuery = usersQuery.skip((page - 1) * limit).limit(limit);
+    }
+
+    const now = new Date();
+    const [users, totalFiltered, totalAllUsers, totalAdmins, verifiedCount, activeSessions] = await Promise.all([
+      usersQuery,
+      User.countDocuments(query),
+      User.countDocuments(),
+      User.countDocuments({ role: 'admin' }),
+      User.countDocuments({ emailVerified: true }),
+      Session.find({
+        isRevoked: false,
+        expiresAt: { $gt: now },
+      }).select('user lastUsedAt createdAt'),
+    ]);
+
+    // Track active sessions per user
+    const activeSessionsCountMap = new Map();
+    activeSessions.forEach((s) => {
+      const uId = s.user?.toString();
+      if (uId) {
+        activeSessionsCountMap.set(uId, (activeSessionsCountMap.get(uId) || 0) + 1);
+      }
+    });
+
+    // Event registrations count per user for the returned users
+    const userIds = users.map((u) => u._id);
+    const regAgg = await Registration.aggregate([
+      { $match: { user: { $in: userIds } } },
+      { $group: { _id: '$user', count: { $sum: 1 } } },
+    ]);
+    const regMap = new Map();
+    regAgg.forEach((r) => regMap.set(r._id.toString(), r.count));
+
+    const formattedUsers = users.map((u) => {
+      const isAdmin = isAuthorizedAdminEmail(u.email) || u.role === 'admin';
+      const activeCount = activeSessionsCountMap.get(u._id.toString()) || 0;
+      return {
+        id: u._id,
+        name: u.name,
+        email: u.email,
+        role: isAdmin ? 'admin' : u.role || 'user',
+        isAdmin,
+        authProvider: u.authProvider || 'otp',
+        avatar: u.avatar || '',
+        emailVerified: u.emailVerified ?? true,
+        emailVerifiedAt: u.emailVerifiedAt,
+        createdAt: u.createdAt,
+        lastLoginAt: u.lastLoginAt || null,
+        eventsCount: regMap.get(u._id.toString()) || 0,
+        hasActiveSession: activeCount > 0,
+        activeSessionsCount: activeCount,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalUsers: totalAllUsers,
+        totalAdmins,
+        verifiedUsers: verifiedCount,
+        activeUsersNow: activeSessionsCountMap.size,
+      },
+      users: formattedUsers,
+      pagination: {
+        total: totalFiltered,
+        page,
+        limit: limit || totalFiltered,
+        pages: limit > 0 ? (Math.ceil(totalFiltered / limit) || 1) : 1,
+      },
+    });
+  } catch (error) {
+    console.error('Admin Get Users Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve registered users list.',
+    });
+  }
+});
+
+/**
+ * @route   GET /api/admin/users/:userId/registrations
+ * @desc    Get all events a specific user is registered for
+ * @access  Private / Administrator Only
+ */
+router.get('/users/:userId/registrations', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: 'User not found in database.' });
+    }
+
+    const registrations = await Registration.find({ user: userId })
+      .populate('event', 'title date venue category capacity image')
+      .sort({ createdAt: -1 });
+
+    const formatted = registrations.map((r) => ({
+      id: r._id,
+      event: r.event
+        ? {
+            id: r.event._id,
+            title: r.event.title,
+            date: r.event.date,
+            venue: r.event.venue,
+            category: r.event.category,
+          }
+        : null,
+      status: r.status,
+      registeredAt: r.createdAt,
+    }));
+
+    return res.status(200).json({
+      success: true,
+      user: {
+        id: targetUser._id,
+        name: targetUser.name,
+        email: targetUser.email,
+      },
+      registrations: formatted,
+    });
+  } catch (error) {
+    console.error('Get User Registrations Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to retrieve registrations for user.' });
+  }
+});
+
+/**
+ * @route   POST /api/admin/users/:userId/revoke-sessions
+ * @desc    Revoke all active sessions for a user
+ * @access  Private / Administrator Only
+ */
+router.post('/users/:userId/revoke-sessions', async (req, res) => {
+  try {
+    const { userId } = req.params;
+    const result = await Session.updateMany(
+      { user: userId, isRevoked: false },
+      { $set: { isRevoked: true, revokedAt: new Date() } }
+    );
+
+    return res.status(200).json({
+      success: true,
+      message: `Revoked ${result.modifiedCount} active session(s) for user.`,
+    });
+  } catch (error) {
+    console.error('Revoke User Sessions Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to revoke user sessions.' });
+  }
+});
+
+/**
+ * @route   DELETE /api/admin/users/:userId
+ * @desc    Delete a user account and associated registrations & sessions
+ * @access  Private / Administrator Only
+ */
+router.delete('/users/:userId', async (req, res) => {
+  try {
+    const { userId } = req.params;
+
+    if (req.user._id.toString() === userId) {
+      return res.status(400).json({
+        success: false,
+        message: 'Cannot delete your own administrative account.',
+      });
+    }
+
+    const targetUser = await User.findById(userId);
+    if (!targetUser) {
+      return res.status(404).json({ success: false, message: 'User not found in database.' });
+    }
+
+    // Cascade delete: user, registrations, sessions
+    await Promise.all([
+      User.findByIdAndDelete(userId),
+      Registration.deleteMany({ user: userId }),
+      Session.deleteMany({ user: userId }),
+    ]);
+
+    return res.status(200).json({
+      success: true,
+      message: `User account "${targetUser.email}" and related records deleted successfully.`,
+    });
+  } catch (error) {
+    console.error('Delete User Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to delete user account.' });
+  }
+});
+
+// ============================================================================
+// LOGIN SESSIONS & WHO LOGGED IN ACTIVITY SECTION
+// ============================================================================
+
+/**
+ * @route   GET /api/admin/sessions
+ * @desc    Get who logged in (sessions history, active status, IP, device)
+ * @access  Private / Administrator Only
+ */
+router.get('/sessions', async (req, res) => {
+  try {
+    const statusFilter = req.query.status || 'all'; // 'all', 'active', 'revoked', 'expired'
+    const search = req.query.search ? req.query.search.trim().toLowerCase() : '';
+    const page = Math.max(1, parseInt(req.query.page, 10) || 1);
+    const limit = Math.min(200, Math.max(1, parseInt(req.query.limit, 10) || 50));
+    const skip = (page - 1) * limit;
+
+    const now = new Date();
+    const query = {};
+
+    if (statusFilter === 'active') {
+      query.isRevoked = false;
+      query.expiresAt = { $gt: now };
+    } else if (statusFilter === 'revoked') {
+      query.isRevoked = true;
+    } else if (statusFilter === 'expired') {
+      query.isRevoked = false;
+      query.expiresAt = { $lte: now };
+    }
+
+    let sessions = await Session.find(query)
+      .populate('user', 'name email role avatar')
+      .sort({ lastUsedAt: -1, createdAt: -1 })
+      .lean();
+
+    if (search) {
+      sessions = sessions.filter((s) => {
+        const userName = s.user?.name?.toLowerCase() || '';
+        const userEmail = s.user?.email?.toLowerCase() || '';
+        const ip = s.ipAddress?.toLowerCase() || '';
+        const ua = s.userAgent?.toLowerCase() || '';
+        return userName.includes(search) || userEmail.includes(search) || ip.includes(search) || ua.includes(search);
+      });
+    }
+
+    const total = sessions.length;
+    const paginatedSessions = sessions.slice(skip, skip + limit);
+
+    const [totalSessions, activeCount, revokedCount] = await Promise.all([
+      Session.countDocuments(),
+      Session.countDocuments({ isRevoked: false, expiresAt: { $gt: now } }),
+      Session.countDocuments({ isRevoked: true }),
+    ]);
+
+    const formattedSessions = paginatedSessions.map((s) => {
+      const isExpired = new Date(s.expiresAt) <= now;
+      let status = 'active';
+      if (s.isRevoked) status = 'revoked';
+      else if (isExpired) status = 'expired';
+
+      return {
+        id: s._id,
+        user: s.user
+          ? {
+              id: s.user._id,
+              name: s.user.name,
+              email: s.user.email,
+              role: isAuthorizedAdminEmail(s.user.email) ? 'admin' : s.user.role || 'user',
+              avatar: s.user.avatar || '',
+            }
+          : {
+              id: null,
+              name: 'Deleted User',
+              email: 'N/A',
+              role: 'user',
+              avatar: '',
+            },
+        loginAt: s.createdAt,
+        lastUsedAt: s.lastUsedAt || s.createdAt,
+        expiresAt: s.expiresAt,
+        ipAddress: s.ipAddress || '127.0.0.1',
+        userAgent: s.userAgent || '',
+        device: parseDeviceAgent(s.userAgent),
+        status,
+        isRevoked: s.isRevoked,
+      };
+    });
+
+    return res.status(200).json({
+      success: true,
+      stats: {
+        totalSessions,
+        activeSessions: activeCount,
+        revokedSessions: revokedCount,
+        expiredSessions: Math.max(0, totalSessions - activeCount - revokedCount),
+      },
+      sessions: formattedSessions,
+      pagination: {
+        total,
+        page,
+        limit,
+        pages: Math.ceil(total / limit) || 1,
+      },
+    });
+  } catch (error) {
+    console.error('Admin Get Sessions Error:', error);
+    return res.status(500).json({
+      success: false,
+      message: 'Failed to retrieve login sessions log.',
+    });
+  }
+});
+
+/**
+ * @route   POST /api/admin/sessions/:sessionId/revoke
+ * @desc    Revoke an active login session immediately
+ * @access  Private / Administrator Only
+ */
+router.post('/sessions/:sessionId/revoke', async (req, res) => {
+  try {
+    const { sessionId } = req.params;
+    const session = await Session.findByIdAndUpdate(
+      sessionId,
+      { isRevoked: true, revokedAt: new Date() },
+      { new: true }
+    );
+
+    if (!session) {
+      return res.status(404).json({ success: false, message: 'Session record not found.' });
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: 'Session has been revoked successfully.',
+    });
+  } catch (error) {
+    console.error('Revoke Session Error:', error);
+    return res.status(500).json({ success: false, message: 'Failed to revoke session.' });
   }
 });
 

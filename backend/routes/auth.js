@@ -346,11 +346,14 @@ router.post('/verify-otp', async (req, res) => {
         role: isServerAdmin ? 'admin' : 'user',
         emailVerified: true,
         emailVerifiedAt: new Date(),
+        lastLoginAt: new Date(),
       });
       console.log(`🎉 New user registered via verified email OTP: ${cleanEmail}`);
     } else {
       // Existing user: preserve data, sync admin role if authorized
       let needsSave = false;
+      user.lastLoginAt = new Date();
+      needsSave = true;
       if (isServerAdmin && user.role !== 'admin') {
         user.role = 'admin';
         needsSave = true;
@@ -476,6 +479,9 @@ router.post('/refresh', async (req, res) => {
     session.lastUsedAt = new Date();
     await session.save();
 
+    // Keep user's lastLoginAt up-to-date
+    await User.findByIdAndUpdate(user._id, { lastLoginAt: new Date() });
+
     // Generate new access token
     const newAccessToken = generateAccessToken(user);
 
@@ -582,6 +588,9 @@ router.post('/login', async (req, res) => {
       return res.status(401).json({ success: false, message: 'Invalid password. Please check your password or sign in with Email OTP.' });
     }
 
+    user.lastLoginAt = new Date();
+    await user.save();
+
     const rawRefreshToken = generateRefreshToken();
     await Session.create({
       user: user._id,
@@ -625,6 +634,7 @@ router.post('/register', async (req, res) => {
       role: isAuthorizedAdminEmail(cleanEmail) ? 'admin' : 'user',
       emailVerified: true,
       emailVerifiedAt: new Date(),
+      lastLoginAt: new Date(),
     });
 
     const rawRefreshToken = generateRefreshToken();

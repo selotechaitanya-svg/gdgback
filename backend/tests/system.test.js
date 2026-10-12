@@ -342,6 +342,42 @@ const runTests = async () => {
     const notFoundRes = await request('GET', `/api/admin/events/${fakeObjectId}/registrations`, null, { Cookie: adminCookieHeader });
     assert(notFoundRes.status === 404, 'Non-existent event ID returns 404 Not Found');
 
+    console.log('\n📌 PART D: ADMIN REGISTERED USERS & LOGIN SESSIONS TESTS');
+
+    // Test 26: Authorized admin retrieves registered users list (200 OK)
+    const adminUsersRes = await request('GET', '/api/admin/users', null, { Cookie: adminCookieHeader });
+    assert(adminUsersRes.status === 200, 'Authorized admin fetches registered users list (200 OK)');
+    assert(Array.isArray(adminUsersRes.body.users), 'Registered users response contains users array');
+    assert(adminUsersRes.body.users.length > 0, 'Users array contains registered accounts');
+    const hasAdminInList = adminUsersRes.body.users.some((u) => u.email === 'admin@gdgrbu.app');
+    assert(hasAdminInList, 'Admin account present in registered users list');
+    assert(typeof adminUsersRes.body.stats?.totalUsers === 'number', 'Stats totalUsers is returned');
+
+    // Test 27: Ordinary user denied from GET /api/admin/users (403 Forbidden)
+    const ordinaryUsersRes = await request('GET', '/api/admin/users', null, { Cookie: attendeeCookieHeader });
+    assert(ordinaryUsersRes.status === 403, 'Ordinary user blocked from GET /api/admin/users (403 Forbidden)');
+
+    // Test 28: Authorized admin retrieves login sessions list (200 OK)
+    const adminSessionsRes = await request('GET', '/api/admin/sessions', null, { Cookie: adminCookieHeader });
+    assert(adminSessionsRes.status === 200, 'Authorized admin fetches login sessions (200 OK)');
+    assert(Array.isArray(adminSessionsRes.body.sessions), 'Sessions response contains sessions array');
+    assert(adminSessionsRes.body.sessions.length > 0, 'Sessions array contains recorded login sessions');
+    const firstSession = adminSessionsRes.body.sessions[0];
+    assert(firstSession.user !== undefined, 'Session object contains populated user info');
+    assert(firstSession.status === 'active' || firstSession.status === 'revoked' || firstSession.status === 'expired', 'Session status is properly computed');
+    assert(typeof firstSession.device === 'string', 'Session device string is computed');
+
+    // Test 29: Ordinary user denied from GET /api/admin/sessions (403 Forbidden)
+    const ordinarySessionsRes = await request('GET', '/api/admin/sessions', null, { Cookie: attendeeCookieHeader });
+    assert(ordinarySessionsRes.status === 403, 'Ordinary user blocked from GET /api/admin/sessions (403 Forbidden)');
+
+    // Test 30: Authorized admin can revoke a session
+    if (adminSessionsRes.body.sessions.length > 0) {
+      const targetSessionId = adminSessionsRes.body.sessions[0].id;
+      const revokeRes = await request('POST', `/api/admin/sessions/${targetSessionId}/revoke`, null, { Cookie: adminCookieHeader });
+      assert(revokeRes.status === 200, 'Admin successfully revokes session (200 OK)');
+    }
+
     console.log('\n========================================================');
     console.log(`📊 TEST SUITE SUMMARY: ${passed} PASSED, ${failed} FAILED`);
     console.log('========================================================\n');

@@ -19,8 +19,12 @@ import {
   X,
   Image as ImageIcon,
   Upload,
+  Activity,
+  Laptop,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
+import AdminRegisteredAccounts from '../components/AdminRegisteredAccounts';
+import AdminLoginSessions from '../components/AdminLoginSessions';
 
 const CATEGORIES = [
   'Workshop',
@@ -49,6 +53,11 @@ export const AdminDashboard = () => {
   const [otpSent, setOtpSent] = useState(false);
   const [otpLoading, setOtpLoading] = useState(false);
   const [countdown, setCountdown] = useState(0);
+
+  // Active Admin Section Navigation Tab: 'events' | 'users' | 'sessions'
+  const [activeTab, setActiveTab] = useState('events');
+  const [totalDbUsersCount, setTotalDbUsersCount] = useState(0);
+  const [activeSessionsBadgeCount, setActiveSessionsBadgeCount] = useState(0);
 
   // Dashboard Data State (When authenticated and authorized)
   const [events, setEvents] = useState([]);
@@ -209,12 +218,28 @@ export const AdminDashboard = () => {
     }
   }, []);
 
-  // Fetch events when user is authorized admin
+  const fetchSummaryCounts = useCallback(async () => {
+    try {
+      const [usersRes, sessionsRes] = await Promise.allSettled([
+        api.get('/api/admin/users?limit=1'),
+        api.get('/api/admin/sessions?limit=1'),
+      ]);
+      if (usersRes.status === 'fulfilled' && usersRes.value.data?.success) {
+        setTotalDbUsersCount(usersRes.value.data.stats?.totalUsers || 0);
+      }
+      if (sessionsRes.status === 'fulfilled' && sessionsRes.value.data?.success) {
+        setActiveSessionsBadgeCount(sessionsRes.value.data.stats?.activeSessions || 0);
+      }
+    } catch (_) {}
+  }, []);
+
+  // Fetch events & summary counts when user is authorized admin
   useEffect(() => {
     if (user && isAdmin) {
       fetchEvents();
+      fetchSummaryCounts();
     }
-  }, [user, isAdmin, fetchEvents]);
+  }, [user, isAdmin, fetchEvents, fetchSummaryCounts]);
 
   // Fetch registrations whenever selected event changes
   useEffect(() => {
@@ -671,17 +696,29 @@ export const AdminDashboard = () => {
               </span>
             </div>
             <h1 className="font-pixel" style={{ fontSize: '1.35rem', margin: '0.5rem 0 0 0' }}>
-              EVENT_MANAGEMENT_PORTAL
+              {activeTab === 'events'
+                ? 'EVENT_MANAGEMENT_PORTAL'
+                : activeTab === 'users'
+                ? 'REGISTERED_ACCOUNTS_DATABASE'
+                : 'LOGIN_SESSIONS_AUDIT_LOG'}
             </h1>
             <p className="font-mono" style={{ fontSize: '0.78rem', color: '#52525B', margin: '4px 0 0 0' }}>
-              Logged in as: <strong>{user.email}</strong> · Manage Events (Create, Edit, Delete) & View Registrations
+              Logged in as: <strong>{user.email}</strong> ·{' '}
+              {activeTab === 'events'
+                ? 'Manage Events (Create, Edit, Delete) & View Registrations'
+                : activeTab === 'users'
+                ? 'Explore all accounts registered in MongoDB with live status, login time & event registrations'
+                : 'Real-time audit log of who logged in, active session status, client devices & IP addresses'}
             </p>
           </div>
 
           <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem', flexWrap: 'wrap' }}>
-            {/* Primary Action: Add Event */}
+            {/* Primary Action: Add Event (accessible on events tab, or switches to it) */}
             <button
-              onClick={handleOpenCreateModal}
+              onClick={() => {
+                setActiveTab('events');
+                handleOpenCreateModal();
+              }}
               className="btn-brutal btn-sm btn-yellow font-mono"
               title="Add New Event"
               style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', fontWeight: 800 }}
@@ -692,9 +729,12 @@ export const AdminDashboard = () => {
 
             <button
               onClick={() => {
-                fetchEvents();
-                if (selectedEventId) fetchRegistrations(selectedEventId, page);
-                toast.success('Event data refreshed');
+                if (activeTab === 'events') {
+                  fetchEvents();
+                  if (selectedEventId) fetchRegistrations(selectedEventId, page);
+                }
+                fetchSummaryCounts();
+                toast.success('Admin data refreshed');
               }}
               className="btn-brutal btn-sm font-mono"
               title="Refresh Data"
@@ -715,7 +755,119 @@ export const AdminDashboard = () => {
           </div>
         </div>
 
-        {/* Master-Detail Layout */}
+        {/* ================================================================== */}
+        {/* NEO-BRUTALIST SECTION NAVIGATION TABS */}
+        {/* ================================================================== */}
+        <div
+          style={{
+            display: 'flex',
+            gap: '0.75rem',
+            marginBottom: '1.75rem',
+            flexWrap: 'wrap',
+          }}
+        >
+          <button
+            type="button"
+            onClick={() => setActiveTab('events')}
+            className={`btn-brutal font-mono ${activeTab === 'events' ? 'btn-yellow' : ''}`}
+            style={{
+              backgroundColor: activeTab === 'events' ? '#FEF08A' : '#FFFFFF',
+              border: '3px solid #000000',
+              boxShadow: activeTab === 'events' ? '4px 4px 0px 0px #000000' : '2px 2px 0px 0px #000000',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.85rem',
+              padding: '0.65rem 1.25rem',
+              cursor: 'pointer',
+            }}
+          >
+            <Calendar size={16} />
+            <span>EVENTS & ATTENDEES</span>
+            <span
+              className="badge-brutal badge-sm font-mono"
+              style={{
+                fontSize: '0.68rem',
+                padding: '1px 6px',
+                backgroundColor: activeTab === 'events' ? '#000000' : '#E4E4E7',
+                color: activeTab === 'events' ? '#FFFFFF' : '#000000',
+              }}
+            >
+              {events.length}
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('users');
+              fetchSummaryCounts();
+            }}
+            className={`btn-brutal font-mono ${activeTab === 'users' ? 'btn-blue' : ''}`}
+            style={{
+              backgroundColor: activeTab === 'users' ? '#DBEAFE' : '#FFFFFF',
+              border: '3px solid #000000',
+              boxShadow: activeTab === 'users' ? '4px 4px 0px 0px #000000' : '2px 2px 0px 0px #000000',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.85rem',
+              padding: '0.65rem 1.25rem',
+              cursor: 'pointer',
+            }}
+          >
+            <Users size={16} />
+            <span>REGISTERED ACCOUNTS (DATABASE)</span>
+            <span
+              className="badge-brutal badge-sm font-mono"
+              style={{
+                fontSize: '0.68rem',
+                padding: '1px 6px',
+                backgroundColor: activeTab === 'users' ? '#1D4ED8' : '#DBEAFE',
+                color: activeTab === 'users' ? '#FFFFFF' : '#1E3A8A',
+              }}
+            >
+              {totalDbUsersCount || '...'} ACCOUNTS
+            </span>
+          </button>
+
+          <button
+            type="button"
+            onClick={() => {
+              setActiveTab('sessions');
+              fetchSummaryCounts();
+            }}
+            className={`btn-brutal font-mono ${activeTab === 'sessions' ? 'btn-green' : ''}`}
+            style={{
+              backgroundColor: activeTab === 'sessions' ? '#DCFCE7' : '#FFFFFF',
+              border: '3px solid #000000',
+              boxShadow: activeTab === 'sessions' ? '4px 4px 0px 0px #000000' : '2px 2px 0px 0px #000000',
+              display: 'inline-flex',
+              alignItems: 'center',
+              gap: '8px',
+              fontSize: '0.85rem',
+              padding: '0.65rem 1.25rem',
+              cursor: 'pointer',
+            }}
+          >
+            <Shield size={16} />
+            <span>LOGIN SESSIONS & AUDIT LOG</span>
+            <span
+              className="badge-brutal badge-sm font-mono"
+              style={{
+                fontSize: '0.68rem',
+                padding: '1px 6px',
+                backgroundColor: activeTab === 'sessions' ? '#15803D' : '#DCFCE7',
+                color: activeTab === 'sessions' ? '#FFFFFF' : '#14532D',
+              }}
+            >
+              {activeSessionsBadgeCount} ACTIVE
+            </span>
+          </button>
+        </div>
+
+        {/* Master-Detail Layout for Events */}
+        {activeTab === 'events' && (
         <div
           style={{
             display: 'grid',
@@ -1142,6 +1294,21 @@ export const AdminDashboard = () => {
             )}
           </div>
         </div>
+        )}
+
+        {/* ================================================================== */}
+        {/* TAB 2: REGISTERED ACCOUNTS IN DATABASE */}
+        {/* ================================================================== */}
+        {activeTab === 'users' && (
+          <AdminRegisteredAccounts currentAdminUser={user} />
+        )}
+
+        {/* ================================================================== */}
+        {/* TAB 3: WHO LOGGED IN - SESSIONS & ACTIVITY AUDIT LOG */}
+        {/* ================================================================== */}
+        {activeTab === 'sessions' && (
+          <AdminLoginSessions currentAdminUser={user} />
+        )}
       </div>
 
       {/* ====================================================================== */}

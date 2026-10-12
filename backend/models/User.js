@@ -48,6 +48,9 @@ const userSchema = new mongoose.Schema(
     emailVerifiedAt: {
       type: Date,
     },
+    lastLoginAt: {
+      type: Date,
+    },
   },
   { timestamps: true }
 );
