@@ -10,6 +10,7 @@ import PageTransition from './components/PageTransition';
 import ScrollProgress from './components/ScrollProgress';
 import ScrollToTop from './components/ScrollToTop';
 import BackToTop from './components/BackToTop';
+import CustomCursor from './components/CustomCursor';
 import { SmoothScrollProvider } from './lib/SmoothScrollContext';
 
 // Pages
@@ -27,6 +28,7 @@ function App() {
     <Router>
       <AuthProvider>
         <SmoothScrollProvider>
+          <CustomCursor />
           <Preloader />
           <ScrollProgress />
 

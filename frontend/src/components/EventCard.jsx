@@ -9,6 +9,7 @@ import {
   X,
   Sparkles,
 } from 'lucide-react';
+import TiltCard from './TiltCard';
 
 const themes = {
   Conference: {
@@ -81,6 +82,7 @@ export const EventCard = ({
   };
 
   return (
+    <TiltCard>
     <article
       className="event-card"
       onPointerMove={handleSpotlight}
@@ -204,6 +206,7 @@ export const EventCard = ({
         </div>
       </div>
     </article>
+    </TiltCard>
   );
 };
 
