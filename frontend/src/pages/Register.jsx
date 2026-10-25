@@ -115,25 +115,8 @@ export const Register = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '80vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2.5rem 1.5rem',
-      }}
-    >
-      <div
-        className="card-static-lg"
-        style={{
-          maxWidth: '520px',
-          width: '100%',
-          backgroundColor: '#FFFFFF',
-          padding: '2.5rem',
-          position: 'relative',
-        }}
-      >
+    <div className="auth-page">
+      <div className="auth-card auth-card--wide card-static-lg">
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div className="badge-brutal badge-green" style={{ marginBottom: '0.75rem' }}>
             NEW DEVELOPER

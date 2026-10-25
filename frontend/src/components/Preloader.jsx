@@ -1,103 +1,182 @@
-import React, { useState, useEffect } from 'react';
+import React, { useLayoutEffect, useMemo, useRef, useState } from 'react';
+import { gsap, prefersReducedMotion } from '../lib/motion';
+import { useSmoothScroll } from '../lib/SmoothScrollContext';
 
+const SESSION_KEY = 'gdg_preloader_seen';
+
+const shouldSkipIntro = () => {
+  try {
+    if (sessionStorage.getItem(SESSION_KEY)) return true;
+    const params = new URLSearchParams(window.location.search);
+    if (params.has('nopreloader') || params.has('showPreloader')) {
+      return params.has('nopreloader');
+    }
+  } catch {
+    return true;
+  }
+  return prefersReducedMotion();
+};
+
+/**
+ * One-time brand intro. Skips itself for returning visitors, reduced motion,
+ * and anyone deep-linking with ?nopreloader.
+ */
 export const Preloader = ({ onFinish }) => {
-  const [dots, setDots] = useState('');
-  const [visible, setVisible] = useState(true);
+  const skip = useMemo(shouldSkipIntro, []);
+  const [mounted, setMounted] = useState(!skip);
+  const overlayRef = useRef(null);
+  const counterRef = useRef(null);
+  const { stop, start } = useSmoothScroll();
 
-  useEffect(() => {
-    const hasSeen = sessionStorage.getItem('gdg_preloader_seen');
-    const urlParams = new URLSearchParams(window.location.search);
-    const forceShow = urlParams.has('showPreloader');
-
-    if (hasSeen && !forceShow) {
-      setVisible(false);
-      if (onFinish) onFinish();
-      return;
+  useLayoutEffect(() => {
+    if (skip) {
+      onFinish?.();
+      return undefined;
     }
 
-    const interval = setInterval(() => {
-      setDots((prev) => (prev.length >= 3 ? '' : prev + '.'));
-    }, 300);
+    try {
+      sessionStorage.setItem(SESSION_KEY, 'true');
+    } catch {
+      /* private mode — intro just plays again next visit */
+    }
 
-    const timer = setTimeout(() => {
-      sessionStorage.setItem('gdg_preloader_seen', 'true');
-      setVisible(false);
-      if (onFinish) onFinish();
-    }, 1800);
+    stop();
+    document.documentElement.classList.add('is-intro');
+
+    const overlay = overlayRef.current;
+    const counter = { value: 0 };
+    const progress = { value: 0 };
+
+    const tl = gsap.timeline({
+      defaults: { ease: 'power3.out' },
+      onComplete: () => {
+        document.documentElement.classList.remove('is-intro');
+        start();
+        setMounted(false);
+        onFinish?.();
+      },
+    });
+
+    tl.fromTo(
+      overlay.querySelectorAll('.preloader__cell'),
+      { scaleY: 0, transformOrigin: 'bottom' },
+      { scaleY: 1, duration: 0.55, stagger: 0.06, ease: 'power4.out' }
+    )
+      .from(
+        '.preloader__logo',
+        { scale: 0.5, rotate: -10, opacity: 0, duration: 0.7, ease: 'back.out(1.8)' },
+        '-=0.15'
+      )
+      .from(
+        '.preloader__title .sw-inner',
+        { yPercent: 115, opacity: 0, duration: 0.65, stagger: 0.05 },
+        '-=0.35'
+      )
+      .from(
+        '.preloader__sub, .preloader__bar, .preloader__meta',
+        { opacity: 0, y: 12, duration: 0.45, stagger: 0.07 },
+        '-=0.3'
+      )
+      .to(
+        counter,
+        {
+          value: 100,
+          duration: 1.15,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            if (counterRef.current) {
+              counterRef.current.textContent = String(Math.round(counter.value)).padStart(3, '0');
+            }
+          },
+        },
+        '<'
+      )
+      .to(
+        progress,
+        {
+          value: 100,
+          duration: 1.15,
+          ease: 'power2.inOut',
+          onUpdate: () => {
+            if (overlay) overlay.style.setProperty('--load', `${progress.value}%`);
+          },
+        },
+        '<'
+      )
+      .to('.preloader__status', { opacity: 1, duration: 0.2 }, '>-0.15')
+      .to('.preloader__inner', { y: -14, opacity: 0, duration: 0.35, ease: 'power2.in' }, '+=0.18')
+      .to(
+        overlay,
+        {
+          yPercent: -101,
+          duration: 0.85,
+          ease: 'expo.inOut',
+          onStart: () => {
+            start();
+            window.dispatchEvent(new Event('gdg:intro-complete'));
+            // Let the hero reveal start as the curtain lifts, then unblock input.
+            window.setTimeout(() => document.documentElement.classList.remove('is-intro'), 120);
+          },
+        },
+        '<0.1'
+      )
+      .set(overlay, { pointerEvents: 'none' });
 
     return () => {
-      clearInterval(interval);
-      clearTimeout(timer);
+      tl.kill();
+      document.documentElement.classList.remove('is-intro');
+      start();
     };
-  }, [onFinish]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [skip]);
 
-  if (!visible) return null;
+  if (!mounted) return null;
 
   return (
     <div
-      style={{
-        position: 'fixed',
-        top: 0,
-        left: 0,
-        width: '100vw',
-        height: '100vh',
-        backgroundColor: '#FCFDF8',
-        backgroundImage: `
-          radial-gradient(#000000 1.2px, transparent 1.2px),
-          linear-gradient(to right, rgba(0,0,0,0.06) 1px, transparent 1px),
-          linear-gradient(to bottom, rgba(0,0,0,0.06) 1px, transparent 1px)
-        `,
-        backgroundSize: '32px 32px, 80px 80px, 80px 80px',
-        zIndex: 9999,
-        display: 'flex',
-        flexDirection: 'column',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '1.5rem',
-      }}
+      ref={overlayRef}
+      className="preloader"
+      role="status"
+      aria-live="polite"
+      aria-label="Loading GDG on Campus EventHub"
     >
-      <div
-        className="card-static-lg"
-        style={{
-          padding: '2.5rem 3rem',
-          maxWidth: '540px',
-          width: '100%',
-          textAlign: 'center',
-          backgroundColor: '#FFFFFF',
-        }}
-      >
-        {/* GDG Logo */}
-        <div style={{ display: 'flex', justifyContent: 'center', marginBottom: '1.5rem' }}>
-          <img
-            src="/gdg-logo.png"
-            alt="GDG on Campus logo"
-            style={{ width: '56px', height: 'auto', display: 'block' }}
-          />
+      <div className="preloader__cells" aria-hidden="true">
+        <span className="preloader__cell" />
+        <span className="preloader__cell" />
+        <span className="preloader__cell" />
+        <span className="preloader__cell" />
+        <span className="preloader__cell" />
+      </div>
+
+      <div className="preloader__inner">
+        <img src="/gdg-logo.png" alt="GDG on Campus" className="preloader__logo" />
+
+        <div className="preloader__title font-pixel" aria-hidden="true">
+          {'GDG_RBU_EVENTHUB'.split('_').map((chunk, index) => (
+            <span className="sw-word" key={chunk}>
+              <span className="sw-inner">{index === 0 ? chunk : `_${chunk}`}</span>
+            </span>
+          ))}
         </div>
 
-        <div className="font-pixel" style={{ fontSize: '1.25rem', marginBottom: '1rem', color: '#000000', lineHeight: '1.4' }}>
-          GDG_RBU_INITIALIZING{dots}
+        <p className="preloader__sub font-mono">GOOGLE DEVELOPER GROUP · RAMDEOBABA UNIVERSITY</p>
+
+        <div className="preloader__bar" aria-hidden="true">
+          <div className="preloader__bar-fill" />
         </div>
 
-        <div
-          className="font-mono"
-          style={{
-            backgroundColor: '#000000',
-            color: '#4ADE80',
-            padding: '0.85rem 1.2rem',
-            borderRadius: '6px',
-            fontSize: '0.9rem',
-            display: 'inline-block',
-            fontWeight: 700,
-            letterSpacing: '0.1em',
-          }}
-        >
-          &gt; READY_FOR_DISCOVERY<span className="cursor-blink">█</span>
+        <div className="preloader__meta font-mono">
+          <span className="preloader__status">BOOTING EVENT ENGINE</span>
+          <span ref={counterRef} className="preloader__counter">
+            000
+          </span>
         </div>
 
-        <p className="font-mono" style={{ fontSize: '0.8rem', color: '#71717A', marginTop: '1.25rem' }}>
-          Google Developer Groups on Campus · Ramdeobaba University
-        </p>
+        <div className="preloader__dots font-mono" aria-hidden="true">
+          <span>JWT</span>
+          <span>QR PASSES</span>
+          <span>LIVE REGISTRATIONS</span>
+        </div>
       </div>
     </div>
   );

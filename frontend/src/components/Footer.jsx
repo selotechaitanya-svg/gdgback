@@ -1,150 +1,153 @@
 import React from 'react';
 import { Link } from 'react-router-dom';
-import { MapPin, Mail, Phone, ExternalLink, Heart, Terminal } from 'lucide-react';
+import { useAuth } from '../context/AuthContext';
+import { useSmoothScroll } from '../lib/SmoothScrollContext';
+import {
+  MapPin,
+  Phone,
+  ArrowUpRight,
+  ArrowUp,
+  ExternalLink,
+  Shield,
+  Ticket,
+  Calendar,
+  Home as HomeIcon,
+  Sparkles,
+} from 'lucide-react';
+
+const externalLinks = [
+  { label: 'GDG Community', href: 'https://developers.google.com/community/gdg' },
+  { label: 'Google Developers', href: 'https://developers.google.com/' },
+  { label: 'DevFest', href: 'https://developers.google.com/community/devfest' },
+  { label: 'Codelabs', href: 'https://codelabs.developers.google.com/' },
+];
 
 export const Footer = () => {
-  return (
-    <footer
-      style={{
-        marginTop: '6rem',
-        borderTop: '4px solid #000000',
-        backgroundColor: '#FFFFFF',
-        boxShadow: '0 -4px 0px 0px rgba(0,0,0,1)',
-      }}
-    >
-      <div
-        className="container-gdg"
-        style={{
-          paddingTop: '4rem',
-          paddingBottom: '3rem',
-        }}
-      >
-        <div
-          style={{
-            display: 'grid',
-            gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 260px), 1fr))',
-            gap: '2.5rem',
-            marginBottom: '3rem',
-          }}
-        >
-          {/* Column 1: Organization & Campus */}
-          <div>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.6rem', marginBottom: '1rem' }}>
-              <div
-                style={{
-                  width: '36px',
-                  height: '36px',
-                  backgroundColor: '#FFFFFF',
-                  border: '2.5px solid #000',
-                  borderRadius: '6px',
-                  boxShadow: '2px 2px 0px 0px #000',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                }}
-              >
-                <img
-                  src="/gdg-logo.png"
-                  alt="GDG on Campus logo"
-                  style={{ width: '26px', height: 'auto', display: 'block' }}
-                />
-              </div>
-              <div>
-                <span className="font-pixel" style={{ fontSize: '0.9rem' }}>GDG ON CAMPUS</span>
-                <p className="font-mono" style={{ fontSize: '0.75rem', color: '#52525B' }}>Ramdeobaba University</p>
-              </div>
-            </div>
+  const { isAdmin } = useAuth();
+  const { scrollTo } = useSmoothScroll();
 
-            <p style={{ fontSize: '0.9rem', color: '#3F3F46', lineHeight: '1.6', marginBottom: '1.25rem' }}>
-              A vibrant community of student developers, designers, and tech leaders passionate about Google technologies, AI, and software craftsmanship.
+  return (
+    <footer className="site-footer">
+      <div className="container-gdg">
+        <div className="footer-grid">
+          <div className="footer-brand">
+            <Link to="/" className="footer-brand__lockup" aria-label="GDG on Campus Ramdeobaba">
+              <span className="footer-brand__mark">
+                <img src="/gdg-logo.png" alt="" />
+              </span>
+              <span>
+                <strong>GDG on Campus</strong>
+                <span className="font-mono">RAMDEOBABA UNIVERSITY</span>
+              </span>
+            </Link>
+
+            <p className="footer-brand__copy">
+              A student-led community of developers, designers and builders exploring Google
+              technologies — from Gemini and Cloud to Android, Flutter and the modern web.
             </p>
 
-            <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.5rem', fontSize: '0.85rem', color: '#52525B' }}>
-              <MapPin size={18} style={{ flexShrink: 0, marginTop: '2px', color: '#000000' }} />
-              <span>Shri Ramdeobaba University, Ramdeo Tekdi, Gittikhadan, Katol Road, Nagpur, Maharashtra 440013</span>
+            <div className="footer-status font-mono">
+              <span className="footer-status__dot" aria-hidden="true" />
+              ALL SYSTEMS HEALTHY · 2026 SEASON
+            </div>
+
+            <div className="footer-location">
+              <MapPin size={16} aria-hidden="true" />
+              <address>
+                Shri Ramdeobaba University, Ramdeo Tekdi, Gittikhadan, Katol Road, Nagpur,
+                Maharashtra 440013
+              </address>
             </div>
           </div>
 
-          {/* Column 2: Recruitment & Contact Queries */}
-          <div>
-            <div className="badge-brutal badge-yellow" style={{ marginBottom: '1rem' }}>
-              RECRUITMENT CONTACT
-            </div>
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.85rem' }}>
-              <div
-                className="card-static"
-                style={{ padding: '0.85rem 1rem', display: 'flex', alignItems: 'center', justifyContent: 'space-between' }}
+          <nav className="footer-col" aria-labelledby="footer-explore">
+            <h3 id="footer-explore" className="footer-col__title font-mono">
+              Explore
+            </h3>
+            <Link to="/" className="footer-link">
+              <HomeIcon size={14} aria-hidden="true" /> Home
+            </Link>
+            <Link to="/events" className="footer-link">
+              <Calendar size={14} aria-hidden="true" /> All events
+            </Link>
+            <Link to="/my-events" className="footer-link">
+              <Ticket size={14} aria-hidden="true" /> My tickets
+            </Link>
+            {isAdmin && (
+              <Link to="/admin" className="footer-link">
+                <Shield size={14} aria-hidden="true" /> Admin console
+              </Link>
+            )}
+          </nav>
+
+          <nav className="footer-col" aria-labelledby="footer-community">
+            <h3 id="footer-community" className="footer-col__title font-mono">
+              Community
+            </h3>
+            {externalLinks.map((link) => (
+              <a
+                key={link.label}
+                href={link.href}
+                target="_blank"
+                rel="noreferrer noopener"
+                className="footer-link"
               >
-                <div>
-                  <div className="font-mono" style={{ fontSize: '0.9rem', fontWeight: 800 }}>
-                    Chaitanya Selote
-                  </div>
-                  <div style={{ fontSize: '0.75rem', color: '#71717A' }}>Developer & Project Lead</div>
-                </div>
-                <a href="tel:+919699910273" className="btn-brutal btn-sm font-mono" style={{ textDecoration: 'none' }}>
-                  +91 9699910273
-                </a>
-              </div>
-            </div>
-          </div>
+                <ExternalLink size={14} aria-hidden="true" /> {link.label}
+              </a>
+            ))}
+          </nav>
 
-          {/* Column 3: Quick Navigation & API Status */}
-          <div>
-            <div className="badge-brutal badge-blue" style={{ marginBottom: '1rem' }}>
-              NAVIGATION & STATUS
+          <div className="footer-col">
+            <h3 className="footer-col__title font-mono">Recruitment desk</h3>
+            <div className="footer-contact">
+              <span className="font-mono footer-contact__role">DEVELOPER &amp; PROJECT LEAD</span>
+              <strong>Chaitanya Selote</strong>
+              <a href="tel:+919699910273" className="footer-phone font-mono">
+                <Phone size={14} aria-hidden="true" /> +91 96999 10273
+              </a>
             </div>
-            <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '0.75rem', marginBottom: '1.5rem' }}>
-              <Link to="/" style={{ color: '#000000', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>
-                → Home
-              </Link>
-              <Link to="/events" style={{ color: '#000000', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>
-                → Events
-              </Link>
-              <Link to="/my-events" style={{ color: '#000000', fontWeight: 700, fontSize: '0.9rem', textDecoration: 'none' }}>
-                → My Tickets
-              </Link>
-            </div>
-
-            <div
-              className="card-static"
-              style={{
-                padding: '1rem',
-                backgroundColor: '#18181B',
-                color: '#FFFFFF',
-              }}
-            >
-              <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', marginBottom: '0.4rem' }}>
-                <div style={{ width: '10px', height: '10px', borderRadius: '50%', backgroundColor: '#4ADE80' }} />
-                <span className="font-mono" style={{ fontSize: '0.8rem', color: '#4ADE80', fontWeight: 700 }}>
-                  SYSTEM_STATUS: HEALTHY
-                </span>
-              </div>
-              <div className="font-mono" style={{ fontSize: '0.75rem', color: '#A1A1AA' }}>
-                JWT Auth · Rate Limiter · In-Memory Mongo · QR Code Generator
-              </div>
-            </div>
+            <Link to="/register" className="btn-brutal btn-sm btn-yellow footer-join">
+              <Sparkles size={14} /> Join the community
+            </Link>
           </div>
         </div>
 
-        {/* Bottom Banner */}
-        <div
-          style={{
-            borderTop: '2px solid #000000',
-            paddingTop: '1.5rem',
-            display: 'flex',
-            flexWrap: 'wrap',
-            alignItems: 'center',
-            justifyContent: 'space-between',
-            gap: '1rem',
-          }}
-        >
-          <div className="font-mono" style={{ fontSize: '0.8rem', color: '#52525B' }}>
+        <div className="footer-wordmark font-pixel" aria-hidden="true">
+          <span>GDG</span>
+          <span className="footer-wordmark__slash">//</span>
+          <span>RBU</span>
+        </div>
+
+        <div className="footer-bottom">
+          <p className="font-mono">
             © 2026 Google Developer Group on Campus · Ramdeobaba University. All rights reserved.
-          </div>
-          <div className="badge-brutal badge-green" style={{ fontSize: '0.75rem' }}>
-            BUILT FOR GDG WEB DEV BACKEND RECRUITMENT DRIVE
+          </p>
+          <div className="footer-bottom__actions">
+            <span className="badge-brutal badge-green footer-tag">
+              BUILT FOR GDG WEB DEV RECRUITMENT
+            </span>
+            <button
+              type="button"
+              onClick={() => scrollTo(0)}
+              className="footer-top font-mono"
+              aria-label="Back to top"
+            >
+              <ArrowUp size={14} aria-hidden="true" /> TOP
+            </button>
           </div>
         </div>
+
+        <p className="footer-disclaimer font-mono">
+          Not affiliated with Google LLC. GDG on Campus programs are operated by student
+          volunteers under the Google Developer Groups community guidelines.
+          <a
+            href="https://developers.google.com/community/gdg"
+            target="_blank"
+            rel="noreferrer noopener"
+          >
+            Learn more <ArrowUpRight size={12} aria-hidden="true" />
+          </a>
+        </p>
       </div>
     </footer>
   );

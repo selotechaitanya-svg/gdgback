@@ -1,29 +1,148 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { useSmoothScroll } from '../lib/SmoothScrollContext';
+import { gsap, hasFinePointer, prefersReducedMotion, holdForIntro } from '../lib/motion';
 import EventCard from '../components/EventCard';
+import Reveal from '../components/Reveal';
+import SplitWords from '../components/SplitWords';
+import CountUp from '../components/CountUp';
+import Marquee from '../components/Marquee';
+import Magnetic from '../components/Magnetic';
 import {
   Calendar,
   Sparkles,
   ArrowRight,
+  ArrowDown,
   Code2,
   Cpu,
   Globe,
-  Terminal,
+  Terminal as TerminalIcon,
   ChevronDown,
-  CheckCircle,
   Users,
-  Award,
+  Search,
+  UserPlus,
+  QrCode,
+  MapPin,
+  ShieldCheck,
+  BellRing,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 
+const marqueeItems = [
+  'DevFest 2026',
+  'Gemini & Vertex AI',
+  'Google Cloud Study Jams',
+  'Android with Compose',
+  'Flutter Forward',
+  'Solution Challenge',
+  'Build with Firebase',
+  'Web Performance',
+];
+
+const tracks = [
+  {
+    title: 'Cloud & DevOps',
+    icon: Globe,
+    description:
+      'Ship resilient systems on Google Cloud with containers, CI/CD and infrastructure as code.',
+    tags: ['GCP', 'Docker', 'Kubernetes'],
+    accent: 'var(--google-blue)',
+    soft: 'var(--google-blue-soft)',
+  },
+  {
+    title: 'AI & Vertex AI',
+    icon: Cpu,
+    description:
+      'Design prompts, build RAG pipelines and deploy Gemini-powered agents that actually work.',
+    tags: ['Gemini', 'Vertex AI', 'RAG'],
+    accent: '#B45309',
+    soft: 'var(--google-yellow-soft)',
+  },
+  {
+    title: 'Android & Flutter',
+    icon: Code2,
+    description:
+      'Build expressive cross-platform apps with Kotlin, Jetpack Compose and Flutter.',
+    tags: ['Kotlin', 'Compose', 'Flutter'],
+    accent: 'var(--google-green)',
+    soft: 'var(--google-green-soft)',
+  },
+  {
+    title: 'Modern Web',
+    icon: TerminalIcon,
+    description:
+      'Craft fast, accessible interfaces with React, TypeScript, Node.js and motion design.',
+    tags: ['React', 'Node.js', 'TypeScript'],
+    accent: 'var(--google-red)',
+    soft: 'var(--google-red-soft)',
+  },
+];
+
+const steps = [
+  {
+    icon: Search,
+    title: 'Discover your track',
+    text: 'Browse conferences, hackathons, bootcamps and meetups. Filter by category, date or venue in seconds.',
+    accent: 'var(--google-blue-soft)',
+  },
+  {
+    icon: UserPlus,
+    title: 'Register in one click',
+    text: 'Create your developer profile, lock your seat and get instant confirmation. Every GDG RBU event is free.',
+    accent: 'var(--google-yellow-soft)',
+  },
+  {
+    icon: QrCode,
+    title: 'Scan in and build',
+    text: 'Your unique QR pass lives in My Tickets. Set a reminder, show the code at the door and start building.',
+    accent: 'var(--google-green-soft)',
+  },
+];
+
+const faqs = [
+  {
+    q: 'Who can register and participate in GDG RBU events?',
+    a: 'All students of Shri Ramdeobaba University, as well as external students, developers and tech enthusiasts from Central India are welcome. Regular meetups, webinars and hackathons are 100% free.',
+  },
+  {
+    q: 'How does the automated QR Code entry pass work?',
+    a: 'When you register for any event, our backend generates a cryptographically unique entry token and QR code. Present the pass on your phone or print it for instant verification at the venue check-in desk.',
+  },
+  {
+    q: 'What if an event reaches maximum capacity?',
+    a: 'Each event has an enforced capacity limit so hands-on labs stay hands-on. Once capacity is reached, registrations close automatically, and spots reopen in real time if someone cancels.',
+  },
+  {
+    q: 'Can I set email reminders for my registered events?',
+    a: 'Yes. Registered attendees can enable reminders with one click, and our background queue sends a notification 24 hours before the session so you never miss a check-in.',
+  },
+  {
+    q: 'Do I need to bring a laptop or any prerequisites?',
+    a: 'For workshops and bootcamps, bring a laptop with a modern browser. Setup guides are shared before each session, and mentors are available on the community Discord for help.',
+  },
+];
+
+const formatShortDate = (value) => {
+  if (!value) return 'Date announced soon';
+  return new Intl.DateTimeFormat('en-US', { month: 'short', day: 'numeric' }).format(
+    new Date(value)
+  );
+};
+
 export const Home = () => {
   const { user } = useAuth();
+  const { scrollTo } = useSmoothScroll();
   const [featuredEvents, setFeaturedEvents] = useState([]);
   const [loading, setLoading] = useState(true);
   const [userRegistrations, setUserRegistrations] = useState(new Set());
-  const [activeFaq, setActiveFaq] = useState(null);
+  const [activeFaq, setActiveFaq] = useState(0);
+
+  const heroRef = useRef(null);
+  const terminalRef = useRef(null);
+  const terminalBodyRef = useRef(null);
+  const spotlightFrame = useRef(0);
 
   useEffect(() => {
     fetchFeaturedEvents();
@@ -66,7 +185,7 @@ export const Home = () => {
     try {
       const res = await api.post(`/api/registrations/events/${eventId}/register`);
       if (res.data.success) {
-        toast.success('Registered successfully! QR Pass is ready in My Tickets.');
+        toast.success('Registered! Your QR pass is ready in My Tickets.');
         setUserRegistrations((prev) => new Set([...prev, eventId]));
         fetchFeaturedEvents();
       }
@@ -92,451 +211,553 @@ export const Home = () => {
     }
   };
 
-  const faqs = [
-    {
-      q: 'Who can register and participate in GDG RBU events?',
-      a: 'All students of Shri Ramdeobaba University, as well as external students, developers, and tech enthusiasts from Central India are welcome! All our regular meetups, webinars, and hackathons are 100% free.',
+  const handleSpotlight = (event) => {
+    if (!hasFinePointer() || prefersReducedMotion()) return;
+    if (spotlightFrame.current) return;
+    const section = event.currentTarget;
+    const { clientX, clientY } = event;
+    spotlightFrame.current = window.requestAnimationFrame(() => {
+      const rect = section.getBoundingClientRect();
+      section.style.setProperty('--spot-x', `${clientX - rect.left}px`);
+      section.style.setProperty('--spot-y', `${clientY - rect.top}px`);
+      spotlightFrame.current = 0;
+    });
+  };
+
+  // Gentle 3D tilt on the hero terminal.
+  useEffect(() => {
+    const el = terminalRef.current;
+    if (!el || !hasFinePointer() || prefersReducedMotion()) return undefined;
+
+    const rotateX = gsap.quickTo(el, 'rotationX', { duration: 0.7, ease: 'power3.out' });
+    const rotateY = gsap.quickTo(el, 'rotationY', { duration: 0.7, ease: 'power3.out' });
+
+    const onMove = (event) => {
+      const rect = el.getBoundingClientRect();
+      const px = (event.clientX - rect.left) / rect.width - 0.5;
+      const py = (event.clientY - rect.top) / rect.height - 0.5;
+      rotateY(px * 7);
+      rotateX(-py * 7);
+    };
+
+    const onLeave = () => {
+      rotateX(0);
+      rotateY(0);
+    };
+
+    el.addEventListener('pointermove', onMove);
+    el.addEventListener('pointerleave', onLeave);
+
+    return () => {
+      el.removeEventListener('pointermove', onMove);
+      el.removeEventListener('pointerleave', onLeave);
+      gsap.killTweensOf(el);
+    };
+  }, []);
+
+  // Stagger the terminal boot log once it is on screen.
+  useLayoutEffect(() => {
+    const el = terminalBodyRef.current;
+    if (!el || prefersReducedMotion()) return undefined;
+
+    let releaseIntro = () => {};
+    const ctx = gsap.context(() => {
+      const tween = gsap.fromTo(
+        el.querySelectorAll('.terminal__line'),
+        { opacity: 0, x: -8 },
+        { opacity: 1, x: 0, duration: 0.4, stagger: 0.13, delay: 0.15, ease: 'power2.out' }
+      );
+      releaseIntro = holdForIntro(tween);
+    }, el);
+
+    return () => {
+      releaseIntro();
+      ctx.revert();
+    };
+  }, []);
+
+  useEffect(
+    () => () => {
+      if (spotlightFrame.current) cancelAnimationFrame(spotlightFrame.current);
     },
-    {
-      q: 'How does the automated QR Code entry pass work?',
-      a: 'When you register for any event, our backend generates a cryptographically unique entry token and QR Code. You can present this QR pass on your phone or print it out at the venue check-in desk for instant verification.',
-    },
-    {
-      q: 'What if an event reaches maximum capacity?',
-      a: 'Each event has an enforced capacity limit to ensure hands-on lab quality and venue safety. Once capacity is reached, new registrations are blocked automatically. If someone unregisters, spots open up in real time.',
-    },
-    {
-      q: 'Can I set email reminders for my registered events?',
-      a: 'Yes! Our EventHub features an automated notification system. Registered users can enable reminders with a single click, and our background queue triggers reminders 24 hours prior to the event.',
-    },
-  ];
+    []
+  );
+
+  const nextEvent = featuredEvents[0];
 
   return (
-    <div style={{ paddingBottom: '3rem' }}>
-      {/* ===================================================================
-          HERO SECTION (Neo-Brutalist 12-Column Layout matching gdgrbu.app)
-          =================================================================== */}
+    <div className="home">
+      {/* ============================= HERO ============================= */}
       <section
-        style={{
-          padding: '4rem 0 3rem 0',
-          position: 'relative',
-        }}
+        className="hero"
+        ref={heroRef}
+        onPointerMove={handleSpotlight}
+        aria-labelledby="hero-title"
       >
         <div className="container-gdg">
-          <div className="grid-hero">
-            {/* Hero Left: Headline + Mission + CTAs */}
-            <div>
-              {/* Brand Tag without box or dots */}
-              <div
-                className="font-mono"
-                style={{
-                  fontSize: '0.85rem',
-                  fontWeight: 800,
-                  marginBottom: '1.5rem',
-                  color: '#18181B',
-                  letterSpacing: '0.04em',
-                }}
-              >
-                RAMDEOBABA UNIVERSITY · GDG ON CAMPUS
-              </div>
+          <div className="hero__grid">
+            <div className="hero__copy">
+              <Reveal as="div" className="hero__eyebrow" y={10} duration={0.6}>
+                <span className="hero__eyebrow-dot" aria-hidden="true" />
+                RAMDEOBABA UNIVERSITY · 2026 SEASON
+                <span aria-hidden="true">↗</span>
+              </Reveal>
 
-              {/* Massive Retro Pixel Headline */}
-              <h1
-                className="font-pixel"
-                style={{
-                  fontSize: 'clamp(1.75rem, 4vw, 3.25rem)',
-                  lineHeight: '1.15',
-                  marginBottom: '1.5rem',
-                  letterSpacing: '-0.03em',
-                  color: '#000000',
-                }}
-              >
-                DISCOVER. REGISTER. BUILD.
+              <h1 className="hero__title" id="hero-title">
+                <span className="hero__title-line">
+                  <SplitWords text="DISCOVER." duration={0.9} stagger={0.06} />
+                </span>
+                <span className="hero__title-line">
+                  <SplitWords text="REGISTER." delay={0.08} duration={0.9} stagger={0.06} />
+                </span>
+                <span className="hero__title-line hero__highlight">
+                  <SplitWords text="BUILD." delay={0.16} duration={0.9} stagger={0.06} />
+                </span>
               </h1>
 
-              {/* Subtitle */}
-              <p
-                style={{
-                  fontSize: '1.15rem',
-                  color: '#27272A',
-                  lineHeight: '1.7',
-                  marginBottom: '2rem',
-                  maxWidth: '580px',
-                }}
-              >
-                The central hub for hackathons, study jams, AI masterclasses, and tech talks organized by <strong>Google Developer Group on Campus RBU</strong>. Discover events, lock in your spot, and receive instant QR admission passes.
-              </p>
+              <Reveal delay={0.18} y={18}>
+                <p className="hero__lead">
+                  The central hub for hackathons, study jams, AI masterclasses and tech talks by{' '}
+                  <strong>Google Developer Group on Campus, RBU</strong>. Discover events, lock in
+                  your seat and walk in with an instant QR pass.
+                </p>
+              </Reveal>
 
-              {/* Action Buttons */}
-              <div
-                style={{
-                  display: 'flex',
-                  flexWrap: 'wrap',
-                  gap: '1rem',
-                  marginBottom: '2.5rem',
-                }}
-              >
-                <Link to="/events" className="btn-brutal btn-lg btn-yellow">
-                  Browse All Events <ArrowRight size={20} />
-                </Link>
+              <Reveal className="hero__actions" delay={0.26} y={14}>
+                <Magnetic strength={0.22}>
+                  <Link to="/events" className="btn-brutal btn-lg btn-yellow">
+                    Browse events <ArrowRight size={18} />
+                  </Link>
+                </Magnetic>
                 {user ? (
-                  <Link to="/my-events" className="btn-brutal btn-lg btn-green">
-                    My Tickets & QR Pass
-                  </Link>
+                  <Magnetic strength={0.18}>
+                    <Link to="/my-events" className="btn-brutal btn-lg btn-green">
+                      My tickets <QrCode size={18} />
+                    </Link>
+                  </Magnetic>
                 ) : (
-                  <Link to="/register" className="btn-brutal btn-lg btn-black">
-                    Join Community
-                  </Link>
+                  <Magnetic strength={0.18}>
+                    <Link to="/register" className="btn-brutal btn-lg btn-black">
+                      Join the community <Sparkles size={17} />
+                    </Link>
+                  </Magnetic>
                 )}
-              </div>
+              </Reveal>
 
-              {/* Fast Stats Row */}
-              <div className="grid-stats" style={{ maxWidth: '540px' }}>
-                <div
-                  className="card-static"
-                  style={{ padding: '0.85rem', textAlign: 'center', backgroundColor: 'var(--google-blue-soft)' }}
-                >
-                  <div className="font-pixel" style={{ fontSize: '1.1rem', marginBottom: '4px' }}>12+</div>
-                  <div className="font-mono" style={{ fontSize: '0.7rem', fontWeight: 700 }}>ANNUAL EVENTS</div>
+              <Reveal className="hero__stats" delay={0.34} y={16}>
+                <div className="hero__stat" style={{ '--stat-accent': 'var(--google-blue)' }}>
+                  <strong>
+                    <CountUp value={12} suffix="+" />
+                  </strong>
+                  <span>Events / year</span>
                 </div>
+                <div className="hero__stat" style={{ '--stat-accent': 'var(--google-yellow)' }}>
+                  <strong>
+                    <CountUp value={1000} suffix="+" />
+                  </strong>
+                  <span>Developers</span>
+                </div>
+                <div className="hero__stat" style={{ '--stat-accent': 'var(--google-green)' }}>
+                  <strong>
+                    <CountUp value={100} suffix="%" />
+                  </strong>
+                  <span>Free access</span>
+                </div>
+              </Reveal>
 
-                <div
-                  className="card-static"
-                  style={{ padding: '0.85rem', textAlign: 'center', backgroundColor: 'var(--google-yellow-soft)' }}
-                >
-                  <div className="font-pixel" style={{ fontSize: '1.1rem', marginBottom: '4px' }}>1,000+</div>
-                  <div className="font-mono" style={{ fontSize: '0.7rem', fontWeight: 700 }}>DEVELOPERS</div>
-                </div>
-
-                <div
-                  className="card-static"
-                  style={{ padding: '0.85rem', textAlign: 'center', backgroundColor: 'var(--google-green-soft)' }}
-                >
-                  <div className="font-pixel" style={{ fontSize: '1.1rem', marginBottom: '4px' }}>100%</div>
-                  <div className="font-mono" style={{ fontSize: '0.7rem', fontWeight: 700 }}>FREE ACCESS</div>
-                </div>
-              </div>
+              <button
+                type="button"
+                className="hero__scroll"
+                onClick={() => scrollTo('#featured-events')}
+              >
+                Scroll to explore <ArrowDown size={14} aria-hidden="true" />
+              </button>
             </div>
 
-            {/* Hero Right: Neo-Brutalist Graphic Box / Terminal Card */}
-            <div>
-              <div
-                className="card-static-lg"
-                style={{
-                  backgroundColor: '#FFFFFF',
-                  padding: '2rem',
-                  position: 'relative',
-                }}
-              >
-                {/* Terminal Title Bar */}
-                <div
-                  style={{
-                    display: 'flex',
-                    alignItems: 'center',
-                    justifyContent: 'space-between',
-                    borderBottom: '3px solid #000000',
-                    paddingBottom: '1rem',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  <div style={{ display: 'flex', gap: '8px' }}>
-                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: 'var(--google-red)', border: '2px solid #000' }} />
-                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: 'var(--google-yellow)', border: '2px solid #000' }} />
-                    <div style={{ width: '14px', height: '14px', borderRadius: '50%', backgroundColor: 'var(--google-green)', border: '2px solid #000' }} />
+            <div className="hero__visual">
+              <Reveal y={40} delay={0.2} duration={0.9}>
+                <div className="terminal" ref={terminalRef}>
+                  <div className="terminal__bar">
+                    <div className="terminal__dots" aria-hidden="true">
+                      <span />
+                      <span />
+                      <span />
+                    </div>
+                    <span className="terminal__title">gdg_rbu_terminal.sh</span>
+                    <span className="font-mono" style={{ fontSize: '0.6rem', color: '#71717a' }}>
+                      ● LIVE
+                    </span>
                   </div>
-                  <div className="font-mono" style={{ fontSize: '0.8rem', fontWeight: 800 }}>
-                    gdg_rbu_terminal.sh
+
+                  <div className="terminal__body" ref={terminalBodyRef}>
+                    <p className="terminal__line">
+                      <span className="terminal__prompt">$</span>
+                      <span>gdg discover --campus &quot;RBU&quot; --season &quot;2026&quot;</span>
+                    </p>
+                    <p className="terminal__line">
+                      <span className="terminal__ok">&gt;</span>
+                      <span>Initializing Google Developer ecosystem…</span>
+                    </p>
+                    <p className="terminal__line">
+                      <span className="terminal__info">&gt;</span>
+                      <span>
+                        {nextEvent
+                          ? `${nextEvent.category} found · ${formatShortDate(nextEvent.date)}`
+                          : 'Scanning flagship summits: DevFest · Cloud · Compose'}
+                      </span>
+                    </p>
+                    <p className="terminal__line">
+                      <span className="terminal__warn">&gt;</span>
+                      <span>Automated QR ticketing: ACTIVE</span>
+                    </p>
+                    <p className="terminal__line">
+                      <span className="terminal__ok">&gt;</span>
+                      <span>
+                        Ready for registration <span className="cursor-blink">█</span>
+                      </span>
+                    </p>
+                  </div>
+
+                  <div className="terminal__next">
+                    <div className="terminal__next-top">
+                      <span className="badge-brutal badge-red">NEXT FLAGSHIP</span>
+                      {nextEvent && (
+                        <span
+                          className="font-mono"
+                          style={{ fontSize: '0.62rem', fontWeight: 800, color: '#52525b' }}
+                        >
+                          {formatShortDate(nextEvent.date)}
+                        </span>
+                      )}
+                    </div>
+                    <h3>{nextEvent?.title || 'DevFest Nagpur 2026'}</h3>
+                    <p>
+                      {nextEvent?.description
+                        ? nextEvent.description.slice(0, 110) + '…'
+                        : 'AI, Cloud and Web ecosystems — Central India’s biggest community developer event.'}
+                    </p>
+                    <div className="terminal__next-meta">
+                      <span>
+                        <MapPin size={12} aria-hidden="true" />
+                        {nextEvent?.venue?.split(',')[0] || 'RBU Campus, Nagpur'}
+                      </span>
+                      <span>
+                        <Users size={12} aria-hidden="true" />
+                        {nextEvent
+                          ? `${nextEvent.registrationCount || 0} registered`
+                          : 'Open registration'}
+                      </span>
+                    </div>
+                    <Link
+                      to={nextEvent ? `/events/${nextEvent._id}` : '/events'}
+                      className="btn-brutal btn-sm"
+                    >
+                      Reserve your seat <ArrowRight size={14} />
+                    </Link>
                   </div>
                 </div>
 
-                {/* Simulated Terminal Output */}
-                <div
-                  className="font-mono"
-                  style={{
-                    backgroundColor: '#18181B',
-                    color: '#F4F4F5',
-                    padding: '1.25rem',
-                    borderRadius: '8px',
-                    fontSize: '0.85rem',
-                    lineHeight: '1.7',
-                    marginBottom: '1.5rem',
-                  }}
-                >
-                  <p style={{ color: '#4ADE80' }}>$ gdg-cli discover --university "RBU" --season "2026"</p>
-                  <p style={{ color: '#FACC15' }}>&gt; Initializing Google Developer Group on Campus...</p>
-                  <p style={{ color: '#60A5FA' }}>&gt; Found flagship summits: DevFest, Cloud Study Jam, Compose Camp</p>
-                  <p style={{ color: '#FFFFFF' }}>&gt; Automated QR ticketing: ACTIVE</p>
-                  <p style={{ color: '#4ADE80' }}>&gt; Ready for registration <span className="cursor-blink">█</span></p>
-                </div>
-
-                {/* Quick Next Event Spotlight */}
-                <div
-                  className="card-static"
-                  style={{
-                    padding: '1.25rem',
-                    backgroundColor: 'var(--google-yellow-soft)',
-                    border: '3px solid #000',
-                  }}
-                >
-                  <div className="badge-brutal badge-red" style={{ marginBottom: '0.5rem' }}>
-                    NEXT FLAGSHIP
-                  </div>
-                  <h4 style={{ fontSize: '1.1rem', fontWeight: 800, marginBottom: '0.4rem' }}>
-                    DevFest Nagpur 2026
-                  </h4>
-                  <p style={{ fontSize: '0.85rem', color: '#52525B', marginBottom: '0.75rem' }}>
-                    AI, Cloud & Web Ecosystems · Central India's biggest community event.
-                  </p>
-                  <Link to="/events" className="btn-brutal btn-sm btn-black" style={{ width: '100%' }}>
-                    Register Your Seat Now
-                  </Link>
-                </div>
-              </div>
+                <span className="hero__sticker" aria-hidden="true">
+                  100%
+                  <br />
+                  FREE
+                </span>
+                <span className="hero__sticker hero__sticker--blue" aria-hidden="true">
+                  QR
+                  <br />
+                  PASS
+                </span>
+              </Reveal>
             </div>
           </div>
         </div>
       </section>
 
-      {/* ===================================================================
-          FEATURED UPCOMING EVENTS SECTION
-          =================================================================== */}
-      <section style={{ padding: '4rem 0', borderTop: '3px solid #000' }}>
+      <Marquee items={marqueeItems} speed={34} />
+
+      {/* ====================== FEATURED EVENTS ====================== */}
+      <section className="section section--white" id="featured-events">
         <div className="container-gdg">
-          <div
-            style={{
-              display: 'flex',
-              flexWrap: 'wrap',
-              justifyContent: 'space-between',
-              alignItems: 'flex-end',
-              gap: '1.5rem',
-              marginBottom: '2.5rem',
-            }}
-          >
-            <div>
-              <div className="badge-brutal badge-yellow" style={{ marginBottom: '0.75rem' }}>
-                HAPPENING SOON
-              </div>
-              <h2 className="font-pixel" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', color: '#000' }}>
-                UPCOMING EVENTS
-              </h2>
+          <div className="section-head">
+            <div className="section-head__copy">
+              <Reveal className="section-eyebrow" y={10} duration={0.5}>
+                <span className="badge-brutal badge-yellow">
+                  <Calendar size={13} aria-hidden="true" /> HAPPENING SOON
+                </span>
+              </Reveal>
+              <SplitWords as="h2" className="section-title" text="UPCOMING EVENTS" />
+              <p className="section-sub">
+                Seats are limited and registrations close automatically at capacity. Pick your next
+                build session.
+              </p>
             </div>
-            <Link to="/events" className="btn-brutal btn-blue">
-              View All Events <ArrowRight size={18} />
-            </Link>
+            <Reveal y={10} duration={0.5}>
+              <Link to="/events" className="btn-brutal btn-blue">
+                View all events <ArrowRight size={17} />
+              </Link>
+            </Reveal>
           </div>
 
           {loading ? (
-            <div style={{ textAlign: 'center', padding: '4rem 0' }}>
-              <div className="font-pixel" style={{ fontSize: '1rem', marginBottom: '1rem' }}>
-                LOADING_EVENTS...<span className="cursor-blink">█</span>
-              </div>
+            <div className="events-grid" aria-busy="true" aria-label="Loading upcoming events">
+              {[0, 1, 2].map((key) => (
+                <div className="skeleton-card" key={key}>
+                  <div className="skeleton-block skeleton-media" />
+                  <div className="skeleton-lines">
+                    <div className="skeleton-block skeleton-line w-45" />
+                    <div className="skeleton-block skeleton-line w-90" />
+                    <div className="skeleton-block skeleton-line w-70" />
+                    <div className="skeleton-block skeleton-line w-90" />
+                    <div className="skeleton-block skeleton-line w-70" />
+                  </div>
+                </div>
+              ))}
             </div>
           ) : featuredEvents.length === 0 ? (
-            <div className="card-static" style={{ padding: '3rem', textAlign: 'center' }}>
-              <h3 className="font-pixel" style={{ fontSize: '1rem', marginBottom: '0.5rem' }}>
-                NO_UPCOMING_EVENTS_FOUND
-              </h3>
-              <p style={{ color: '#52525B' }}>Check back soon or explore past archives!</p>
+            <div className="empty-state">
+              <div className="empty-state__icon" aria-hidden="true">
+                <Sparkles size={30} />
+              </div>
+              <h3>THE NEXT DROP IS LOADING</h3>
+              <p>
+                No upcoming events are published right now. Join the community and you will be the
+                first to know when registration opens.
+              </p>
+              <Link to="/register" className="btn-brutal btn-yellow">
+                Join the community <ArrowRight size={16} />
+              </Link>
             </div>
           ) : (
-            <div className="grid-cards">
-              {featuredEvents.map((event) => (
-                <EventCard
-                  key={event._id}
-                  event={event}
-                  isRegistered={userRegistrations.has(event._id)}
-                  onRegister={handleRegister}
-                  onUnregister={handleUnregister}
-                />
+            <div className="events-grid">
+              {featuredEvents.map((event, index) => (
+                <Reveal key={event._id} delay={index * 0.08} y={28}>
+                  <EventCard
+                    event={event}
+                    isRegistered={userRegistrations.has(event._id)}
+                    onRegister={handleRegister}
+                    onUnregister={handleUnregister}
+                  />
+                </Reveal>
               ))}
             </div>
           )}
         </div>
       </section>
 
-      {/* ===================================================================
-          TECHNOLOGY DOMAINS (Matching gdgrbu.app)
-          =================================================================== */}
-      <section style={{ padding: '4rem 0', borderTop: '3px solid #000', backgroundColor: '#FFFFFF' }}>
+      {/* ========================== TRACKS ========================== */}
+      <section className="section section--cream">
         <div className="container-gdg">
-          <div style={{ textAlign: 'center', maxWidth: '700px', margin: '0 auto 3rem auto' }}>
-            <div className="badge-brutal badge-green" style={{ marginBottom: '0.75rem' }}>
-              WHAT WE BUILD
+          <div className="section-head">
+            <div className="section-head__copy">
+              <Reveal className="section-eyebrow" y={10} duration={0.5}>
+                <span className="badge-brutal badge-green">WHAT WE BUILD</span>
+              </Reveal>
+              <SplitWords as="h2" className="section-title" text="FOUR TECH TRACKS. ONE COMMUNITY." />
+              <p className="section-sub">
+                From distributed systems on Google Cloud to Gemini-powered applications, every
+                session is hands-on, mentor-led and built around shipping real projects.
+              </p>
             </div>
-            <h2 className="font-pixel" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)', marginBottom: '1rem' }}>
-              CORE TECH TRACKS
-            </h2>
-            <p style={{ color: '#52525B', fontSize: '1.05rem' }}>
-              From distributed systems on Google Cloud to next-gen AI applications, our workshops empower engineers across all disciplines.
-            </p>
+            <Reveal y={10} duration={0.5}>
+              <Link to="/events" className="link-arrow">
+                Explore sessions <ArrowRight size={14} />
+              </Link>
+            </Reveal>
           </div>
 
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 250px), 1fr))',
-              gap: '1.75rem',
-            }}
-          >
-            {/* Domain 1: Cloud & DevOps */}
-            <div className="card-brutal accent-bar-blue" style={{ padding: '1.75rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  backgroundColor: 'var(--google-blue-soft)',
-                  border: '2.5px solid #000',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <Globe size={26} color="var(--google-blue)" />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Cloud & DevOps</h3>
-              <p style={{ fontSize: '0.9rem', color: '#52525B', lineHeight: '1.6' }}>
-                Master Google Cloud Platform, Docker, Kubernetes, Terraform, and resilient microservice architectures.
-              </p>
-            </div>
-
-            {/* Domain 2: AI & Machine Learning */}
-            <div className="card-brutal accent-bar-yellow" style={{ padding: '1.75rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  backgroundColor: 'var(--google-yellow-soft)',
-                  border: '2.5px solid #000',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <Cpu size={26} color="#B45309" />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem' }}>AI & Vertex AI</h3>
-              <p style={{ fontSize: '0.9rem', color: '#52525B', lineHeight: '1.6' }}>
-                Explore Gemini models, prompt design, multimodal AI, vector search, and deploying intelligent autonomous agents.
-              </p>
-            </div>
-
-            {/* Domain 3: Android & Flutter */}
-            <div className="card-brutal accent-bar-green" style={{ padding: '1.75rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  backgroundColor: 'var(--google-green-soft)',
-                  border: '2.5px solid #000',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <Code2 size={26} color="var(--google-green)" />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Android & Flutter</h3>
-              <p style={{ fontSize: '0.9rem', color: '#52525B', lineHeight: '1.6' }}>
-                Build modern, reactive cross-platform mobile apps using Kotlin, Jetpack Compose, Flutter, and Firebase.
-              </p>
-            </div>
-
-            {/* Domain 4: Web Architecture */}
-            <div className="card-brutal accent-bar-red" style={{ padding: '1.75rem' }}>
-              <div
-                style={{
-                  width: '48px',
-                  height: '48px',
-                  backgroundColor: 'var(--google-red-soft)',
-                  border: '2.5px solid #000',
-                  borderRadius: '8px',
-                  display: 'flex',
-                  alignItems: 'center',
-                  justifyContent: 'center',
-                  marginBottom: '1.25rem',
-                }}
-              >
-                <Terminal size={26} color="var(--google-red)" />
-              </div>
-              <h3 style={{ fontSize: '1.2rem', fontWeight: 800, marginBottom: '0.5rem' }}>Modern Web</h3>
-              <p style={{ fontSize: '0.9rem', color: '#52525B', lineHeight: '1.6' }}>
-                High-performance full-stack web with Node.js, Express, React, TypeScript, and Neo-Brutalist design systems.
-              </p>
-            </div>
+          <div className="tracks-grid">
+            {tracks.map((track, index) => {
+              const Icon = track.icon;
+              return (
+                <Reveal
+                  key={track.title}
+                  as="article"
+                  className="track-card"
+                  delay={index * 0.07}
+                  y={24}
+                  style={{ '--track-accent': track.accent, '--track-soft': track.soft }}
+                >
+                  <div className="track-card__top">
+                    <span className="track-card__icon">
+                      <Icon size={25} aria-hidden="true" />
+                    </span>
+                    <span className="track-card__num">{String(index + 1).padStart(2, '0')}</span>
+                  </div>
+                  <h3>{track.title}</h3>
+                  <p>{track.description}</p>
+                  <div className="track-card__tags">
+                    {track.tags.map((tag) => (
+                      <span className="tag" key={tag}>
+                        {tag}
+                      </span>
+                    ))}
+                  </div>
+                </Reveal>
+              );
+            })}
           </div>
         </div>
       </section>
 
-      {/* ===================================================================
-          FAQS ACCORDION (Matching gdgrbu.app Section 4)
-          =================================================================== */}
-      <section style={{ padding: '4rem 0', borderTop: '3px solid #000' }}>
-        <div className="container-gdg" style={{ maxWidth: '860px' }}>
-          <div style={{ textAlign: 'center', marginBottom: '2.5rem' }}>
-            <div className="badge-brutal badge-purple" style={{ marginBottom: '0.75rem' }}>
-              GOT QUESTIONS?
+      {/* ======================== HOW IT WORKS ======================== */}
+      <section className="section section--white">
+        <div className="container-gdg">
+          <div className="section-head">
+            <div className="section-head__copy">
+              <Reveal className="section-eyebrow" y={10} duration={0.5}>
+                <span className="badge-brutal badge-blue">ZERO FRICTION</span>
+              </Reveal>
+              <SplitWords
+                as="h2"
+                className="section-title"
+                text="FROM DISCOVERY TO CHECK-IN IN 3 STEPS"
+              />
+              <p className="section-sub">
+                No paper forms, no group chats, no waiting at the desk. EventHub handles the entire
+                journey.
+              </p>
             </div>
-            <h2 className="font-pixel" style={{ fontSize: 'clamp(1.5rem, 3vw, 2.25rem)' }}>
-              FREQUENTLY ASKED
-            </h2>
           </div>
 
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
+          <div className="steps-grid">
+            {steps.map((step, index) => {
+              const Icon = step.icon;
+              return (
+                <Reveal
+                  key={step.title}
+                  as="article"
+                  className="step-card"
+                  delay={index * 0.1}
+                  y={26}
+                >
+                  <span className="step-card__number">STEP {String(index + 1).padStart(2, '0')}</span>
+                  <span className="step-card__icon" style={{ background: step.accent }}>
+                    <Icon size={21} aria-hidden="true" />
+                  </span>
+                  <h3>{step.title}</h3>
+                  <p>{step.text}</p>
+                </Reveal>
+              );
+            })}
+          </div>
+
+          <Reveal className="detail-perks" y={16} delay={0.1}>
+            <div className="detail-perk">
+              <ShieldCheck size={17} aria-hidden="true" /> Secure JWT sessions &amp; rate-limited API
+            </div>
+            <div className="detail-perk">
+              <BellRing size={17} aria-hidden="true" /> Automated 24-hour event reminders
+            </div>
+            <div className="detail-perk">
+              <QrCode size={17} aria-hidden="true" /> Unique QR pass with instant verification
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============================ CTA ============================ */}
+      <section className="section section--cream">
+        <div className="container-gdg">
+          <Reveal className="cta-panel" y={34} duration={0.9}>
+            <div className="cta-panel__inner">
+              <div>
+                <span className="badge-brutal badge-yellow" style={{ marginBottom: '1.1rem' }}>
+                  <Sparkles size={13} aria-hidden="true" /> OPEN INVITATION
+                </span>
+                <h2 className="cta-panel__title">
+                  READY TO BUILD
+                  <br />
+                  SOMETHING <span>GREAT?</span>
+                </h2>
+                <p className="cta-panel__copy">
+                  Join 1,000+ student developers learning in public, shipping side projects and
+                  meeting the people who will hire them. Your next teammate is probably in the room.
+                </p>
+                <div className="cta-panel__actions">
+                  {user ? (
+                    <Link to="/my-events" className="btn-brutal btn-lg btn-yellow">
+                      Open my tickets <ArrowRight size={17} />
+                    </Link>
+                  ) : (
+                    <Link to="/register" className="btn-brutal btn-lg btn-yellow">
+                      Create free account <ArrowRight size={17} />
+                    </Link>
+                  )}
+                  <Link to="/events" className="btn-brutal btn-lg btn-ghost-light">
+                    Browse all events
+                  </Link>
+                </div>
+              </div>
+
+              <div className="cta-panel__stats" aria-label="Community at a glance">
+                <div className="cta-panel__stat">
+                  <strong>
+                    <CountUp value={12} suffix="+" />
+                  </strong>
+                  <span>flagship events every year</span>
+                </div>
+                <div className="cta-panel__stat">
+                  <strong>
+                    <CountUp value={1000} suffix="+" />
+                  </strong>
+                  <span>developers in the community</span>
+                </div>
+                <div className="cta-panel__stat">
+                  <strong>
+                    <CountUp value={4} />
+                  </strong>
+                  <span>hands-on technology tracks</span>
+                </div>
+              </div>
+            </div>
+          </Reveal>
+        </div>
+      </section>
+
+      {/* ============================ FAQ ============================ */}
+      <section className="section section--white">
+        <div className="container-gdg" style={{ maxWidth: '880px' }}>
+          <div className="section-head" style={{ justifyContent: 'center', textAlign: 'center' }}>
+            <div className="section-head__copy">
+              <Reveal className="section-eyebrow" y={10} duration={0.5}>
+                <span className="badge-brutal badge-purple">GOT QUESTIONS?</span>
+              </Reveal>
+              <SplitWords as="h2" className="section-title" text="FREQUENTLY ASKED" />
+              <p className="section-sub" style={{ marginLeft: 'auto', marginRight: 'auto' }}>
+                Everything you need to know before your first GDG RBU session. Still stuck? Ping the
+                recruitment desk in the footer.
+              </p>
+            </div>
+          </div>
+
+          <div className="faq-list">
             {faqs.map((faq, index) => {
               const isOpen = activeFaq === index;
               return (
-                <div
-                  key={index}
-                  className="card-static"
-                  style={{
-                    backgroundColor: isOpen ? '#FFFFFF' : '#FAFAFA',
-                    cursor: 'pointer',
-                    transition: 'all 0.2s ease',
-                  }}
-                  onClick={() => setActiveFaq(isOpen ? null : index)}
-                >
-                  <div
-                    style={{
-                      padding: '1.25rem 1.5rem',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      gap: '1rem',
-                    }}
+                <div key={faq.q} className={`faq-item ${isOpen ? 'is-open' : ''}`}>
+                  <button
+                    type="button"
+                    className="faq-button"
+                    aria-expanded={isOpen}
+                    aria-controls={`faq-panel-${index}`}
+                    id={`faq-button-${index}`}
+                    onClick={() => setActiveFaq(isOpen ? null : index)}
                   >
-                    <span style={{ fontSize: '1.05rem', fontWeight: 800 }}>
-                      {faq.q}
+                    <span>{faq.q}</span>
+                    <span className="faq-icon" aria-hidden="true">
+                      <ChevronDown size={18} />
                     </span>
-                    <div
-                      style={{
-                        transform: isOpen ? 'rotate(180deg)' : 'rotate(0deg)',
-                        transition: 'transform 0.2s ease',
-                      }}
-                    >
-                      <ChevronDown size={20} />
+                  </button>
+                  <div
+                    className="faq-panel"
+                    id={`faq-panel-${index}`}
+                    role="region"
+                    aria-labelledby={`faq-button-${index}`}
+                  >
+                    <div className="faq-panel__inner">
+                      <p>{faq.a}</p>
                     </div>
                   </div>
-
-                  {isOpen && (
-                    <div
-                      style={{
-                        padding: '0 1.5rem 1.25rem 1.5rem',
-                        borderTop: '2px dashed #000',
-                        paddingTop: '1rem',
-                        fontSize: '0.95rem',
-                        color: '#3F3F46',
-                        lineHeight: '1.65',
-                      }}
-                    >
-                      {faq.a}
-                    </div>
-                  )}
                 </div>
               );
             })}

@@ -1,277 +1,247 @@
-import React, { useState } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
 import { Link, useLocation, useNavigate } from 'react-router-dom';
 import { useAuth } from '../context/AuthContext';
-import { Menu, X, LogOut, Shield, Ticket, Calendar, PlusCircle, UserCheck } from 'lucide-react';
+import { useSmoothScroll } from '../lib/SmoothScrollContext';
+import { gsap, prefersReducedMotion } from '../lib/motion';
+import Magnetic from './Magnetic';
+import {
+  Menu,
+  X,
+  LogOut,
+  Shield,
+  Ticket,
+  Calendar,
+  Home as HomeIcon,
+  ArrowUpRight,
+  Sparkles,
+} from 'lucide-react';
+
+const navItems = [
+  { to: '/', label: 'Home', icon: HomeIcon },
+  { to: '/events', label: 'Events', icon: Calendar },
+  { to: '/my-events', label: 'My Tickets', icon: Ticket, authOnly: true },
+];
 
 export const Navbar = () => {
   const { user, isAdmin, logout } = useAuth();
   const location = useLocation();
   const navigate = useNavigate();
+  const { stop, start } = useSmoothScroll();
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const drawerRef = useRef(null);
+
+  const isActive = (path) =>
+    path === '/' ? location.pathname === '/' : location.pathname.startsWith(path);
+
+  useEffect(() => {
+    const onScroll = () => setScrolled(window.scrollY > 16);
+    onScroll();
+    window.addEventListener('scroll', onScroll, { passive: true });
+    return () => window.removeEventListener('scroll', onScroll);
+  }, []);
+
+  // Close the drawer whenever the route changes.
+  useEffect(() => {
+    setMobileMenuOpen(false);
+  }, [location.pathname]);
+
+  useEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') setMobileMenuOpen(false);
+    };
+    window.addEventListener('keydown', onKey);
+    stop();
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      start();
+    };
+  }, [mobileMenuOpen, stop, start]);
+
+  useLayoutEffect(() => {
+    if (!mobileMenuOpen) return undefined;
+    const drawer = drawerRef.current;
+    if (!drawer || prefersReducedMotion()) return undefined;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        drawer,
+        { opacity: 0, y: -14 },
+        { opacity: 1, y: 0, duration: 0.4, ease: 'power3.out' }
+      );
+      gsap.fromTo(
+        drawer.querySelectorAll('.nav-drawer__item'),
+        { opacity: 0, x: -12 },
+        { opacity: 1, x: 0, duration: 0.35, stagger: 0.05, delay: 0.08, ease: 'power2.out' }
+      );
+    }, drawer);
+
+    return () => ctx.revert();
+  }, [mobileMenuOpen]);
 
   const handleLogout = () => {
     logout();
-    navigate('/');
     setMobileMenuOpen(false);
+    navigate('/');
   };
 
-  const isActive = (path) => location.pathname === path;
-
   return (
-    <header
-      style={{
-        position: 'sticky',
-        top: 0,
-        zIndex: 100,
-        backgroundColor: '#FCFDF8',
-        borderBottom: '3px solid #000000',
-        boxShadow: '0 4px 0px 0px rgba(0,0,0,1)',
-      }}
-    >
-      <div
-        className="container-gdg"
-        style={{
-          height: '70px',
-          display: 'flex',
-          alignItems: 'center',
-          justifyContent: 'space-between',
-        }}
-      >
-        {/* GDG Logo */}
-        <Link
-          to="/"
-          style={{
-            display: 'flex',
-            alignItems: 'center',
-            textDecoration: 'none',
-          }}
-          onClick={() => setMobileMenuOpen(false)}
-          aria-label="GDG RBU Home"
-        >
-          <img
-            src="/gdg-logo.png"
-            alt="GDG on Campus logo"
-            style={{
-              height: '44px',
-              width: 'auto',
-              display: 'block',
-              transition: 'transform 0.2s ease',
-            }}
-            className="hover:scale-105"
-          />
+    <header className={`site-header ${scrolled ? 'is-scrolled' : ''}`}>
+      <div className="container-gdg nav-shell">
+        <Link to="/" className="nav-logo" aria-label="GDG on Campus Ramdeobaba — home">
+          <span className="nav-logo__mark">
+            <img src="/gdg-logo.png" alt="" />
+          </span>
+          <span className="nav-logo__text">
+            <strong>GDG on Campus</strong>
+            <span className="font-mono">RAMDEOBABA UNIVERSITY</span>
+          </span>
         </Link>
 
-        {/* Desktop Navigation Links */}
-        <nav
-          style={{
-            display: 'none',
-            alignItems: 'center',
-            gap: '1rem',
-          }}
-          className="desktop-nav"
-        >
-          {/* Home Button (Blue) */}
-          <Link
-            to="/"
-            className={`btn-brutal btn-sm ${isActive('/') ? 'btn-blue' : ''}`}
-            style={{ backgroundColor: isActive('/') ? 'var(--google-blue-light)' : '#FFFFFF' }}
-          >
-            Home
-          </Link>
-
-          {/* Events Button (Yellow) */}
-          <Link
-            to="/events"
-            className={`btn-brutal btn-sm ${isActive('/events') ? 'btn-yellow' : ''}`}
-            style={{ backgroundColor: isActive('/events') ? 'var(--google-yellow-light)' : '#FFFFFF' }}
-          >
-            <Calendar size={15} />
-            Events
-          </Link>
-
-          {/* Authenticated Links */}
-          {user && (
+        <nav className="nav-links" aria-label="Primary">
+          {navItems
+            .filter((item) => !item.authOnly || user)
+            .map(({ to, label, icon: Icon }) => (
+              <Link
+                key={to}
+                to={to}
+                className={`nav-link ${isActive(to) ? 'is-active' : ''}`}
+                aria-current={isActive(to) ? 'page' : undefined}
+              >
+                <Icon size={15} strokeWidth={2.4} aria-hidden="true" />
+                {label}
+                <span className="nav-link__dot" aria-hidden="true" />
+              </Link>
+            ))}
+          {isAdmin && (
             <Link
-              to="/my-events"
-              className={`btn-brutal btn-sm ${isActive('/my-events') ? 'btn-green' : ''}`}
-              style={{ backgroundColor: isActive('/my-events') ? 'var(--google-green-light)' : '#FFFFFF' }}
+              to="/admin"
+              className={`nav-link nav-link--admin ${isActive('/admin') ? 'is-active' : ''}`}
+              aria-current={isActive('/admin') ? 'page' : undefined}
             >
-              <Ticket size={15} />
-              My Tickets
+              <Shield size={15} strokeWidth={2.4} aria-hidden="true" />
+              Admin
+              <span className="nav-link__dot" aria-hidden="true" />
             </Link>
           )}
-
-
         </nav>
 
-        {/* Auth Action Buttons (Desktop) */}
-        <div style={{ display: 'none', alignItems: 'center', gap: '0.75rem' }} className="desktop-nav">
+        <div className="nav-actions">
           {user ? (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <div
-                style={{
-                  display: 'flex',
-                  alignItems: 'center',
-                  gap: '0.5rem',
-                  padding: '0.35rem 0.75rem',
-                  backgroundColor: '#FFFFFF',
-                  border: '2px solid #000000',
-                  borderRadius: '6px',
-                  boxShadow: '2px 2px 0px 0px #000000',
-                }}
-              >
-                <div
-                  style={{
-                    width: '10px',
-                    height: '10px',
-                    borderRadius: '50%',
-                    backgroundColor: isAdmin ? 'var(--google-red)' : 'var(--google-green)',
-                  }}
-                />
-                <span className="font-mono" style={{ fontSize: '0.8rem', fontWeight: 700 }}>
-                  {user.name.split(' ')[0]}
+            <>
+              <div className="nav-user" title={user.email}>
+                <span className="nav-user__avatar" aria-hidden="true">
+                  {(user.name || user.email || 'G').charAt(0).toUpperCase()}
                 </span>
-                {isAdmin && (
-                  <span
-                    className="font-pixel"
-                    style={{
-                      fontSize: '0.55rem',
-                      backgroundColor: '#000000',
-                      color: '#FFFFFF',
-                      padding: '2px 4px',
-                      borderRadius: '3px',
-                    }}
-                  >
-                    ADMIN
-                  </span>
-                )}
+                <span className="nav-user__meta">
+                  <span className="nav-user__name">{user.name?.split(' ')[0] || 'Developer'}</span>
+                  <span className="font-mono">{isAdmin ? 'ADMIN' : 'MEMBER'}</span>
+                </span>
               </div>
-
               <button
+                type="button"
                 onClick={handleLogout}
-                className="btn-brutal btn-sm btn-red"
-                title="Logout"
-                style={{ padding: '0.4rem 0.6rem' }}
+                className="btn-brutal btn-sm btn-icon btn-red"
+                title="Log out"
+                aria-label="Log out"
               >
                 <LogOut size={15} />
               </button>
-            </div>
+            </>
           ) : (
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.75rem' }}>
-              <Link to="/login" className="btn-brutal btn-sm">
-                Login
+            <>
+              <Link to="/login" className="nav-signin">
+                Sign in
               </Link>
-              <Link to="/register" className="btn-brutal btn-sm btn-black">
-                Join Us
-              </Link>
-            </div>
+              <Magnetic strength={0.2}>
+                <Link to="/register" className="btn-brutal btn-sm btn-join">
+                  <Sparkles size={14} />
+                  Join GDG
+                  <ArrowUpRight size={14} />
+                </Link>
+              </Magnetic>
+            </>
           )}
         </div>
 
-        {/* Mobile Hamburger Toggle */}
         <button
-          onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-          className="btn-brutal btn-sm"
-          style={{ display: 'flex', padding: '0.45rem' }}
-          aria-label="Toggle Navigation Menu"
+          type="button"
+          onClick={() => setMobileMenuOpen((open) => !open)}
+          className="btn-brutal btn-sm btn-icon nav-toggle"
+          aria-label={mobileMenuOpen ? 'Close navigation menu' : 'Open navigation menu'}
+          aria-expanded={mobileMenuOpen}
+          aria-controls="mobile-navigation"
         >
           {mobileMenuOpen ? <X size={22} /> : <Menu size={22} />}
         </button>
       </div>
 
-      {/* Mobile Menu Drawer */}
       {mobileMenuOpen && (
-        <div
-          style={{
-            backgroundColor: '#FCFDF8',
-            borderTop: '2px solid #000000',
-            padding: '1.25rem 1rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '0.85rem',
-            maxHeight: 'calc(100vh - 75px)',
-            overflowY: 'auto',
-          }}
-        >
-          <Link
-            to="/"
-            className="btn-brutal btn-blue"
-            style={{ width: '100%' }}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            Home
-          </Link>
-          <Link
-            to="/events"
-            className="btn-brutal btn-yellow"
-            style={{ width: '100%' }}
-            onClick={() => setMobileMenuOpen(false)}
-          >
-            <Calendar size={18} />
-            Browse Events
-          </Link>
-          {user && (
-            <Link
-              to="/my-events"
-              className="btn-brutal btn-green"
-              style={{ width: '100%' }}
-              onClick={() => setMobileMenuOpen(false)}
-            >
-              <Ticket size={18} />
-              My Tickets & QR Codes
-            </Link>
-          )}
+        <div ref={drawerRef} className="nav-drawer" id="mobile-navigation">
+          <div className="container-gdg nav-drawer__inner">
+            {navItems
+              .filter((item) => !item.authOnly || user)
+              .map(({ to, label, icon: Icon }) => (
+                <Link
+                  key={to}
+                  to={to}
+                  className={`nav-drawer__link nav-drawer__item ${isActive(to) ? 'is-active' : ''}`}
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  <Icon size={18} aria-hidden="true" />
+                  <span>{label}</span>
+                  <ArrowUpRight size={16} className="nav-drawer__arrow" aria-hidden="true" />
+                </Link>
+              ))}
 
-          <div style={{ height: '2px', backgroundColor: '#000000', margin: '0.5rem 0' }} />
+            {isAdmin && (
+              <Link
+                to="/admin"
+                className="nav-drawer__link nav-drawer__item"
+                onClick={() => setMobileMenuOpen(false)}
+              >
+                <Shield size={18} aria-hidden="true" />
+                <span>Admin Console</span>
+                <ArrowUpRight size={16} className="nav-drawer__arrow" aria-hidden="true" />
+              </Link>
+            )}
 
-          {user ? (
-            <div style={{ display: 'flex', flexDirection: 'column', gap: '0.75rem' }}>
-              <div className="font-mono" style={{ fontSize: '0.85rem', fontWeight: 700 }}>
-                Logged in as: <strong>{user.email}</strong> ({user.role})
+            <div className="nav-drawer__divider nav-drawer__item" aria-hidden="true" />
+
+            {user ? (
+              <div className="nav-drawer__account nav-drawer__item">
+                <div>
+                  <div className="font-mono nav-drawer__account-label">SIGNED IN AS</div>
+                  <strong>{user.email}</strong>
+                  <span className="font-mono">{isAdmin ? 'ADMIN' : 'MEMBER'}</span>
+                </div>
+                <button type="button" onClick={handleLogout} className="btn-brutal btn-sm btn-red">
+                  <LogOut size={15} /> Log out
+                </button>
               </div>
-              <button
-                onClick={handleLogout}
-                className="btn-brutal btn-red"
-                style={{ width: '100%' }}
-              >
-                <LogOut size={18} />
-                Logout
-              </button>
-            </div>
-          ) : (
-            <div style={{ display: 'flex', gap: '0.75rem' }}>
-              <Link
-                to="/login"
-                className="btn-brutal"
-                style={{ flex: 1 }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Login
-              </Link>
-              <Link
-                to="/register"
-                className="btn-brutal btn-black"
-                style={{ flex: 1 }}
-                onClick={() => setMobileMenuOpen(false)}
-              >
-                Register
-              </Link>
-            </div>
-          )}
+            ) : (
+              <div className="nav-drawer__cta nav-drawer__item">
+                <Link
+                  to="/login"
+                  className="btn-brutal"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Sign in
+                </Link>
+                <Link
+                  to="/register"
+                  className="btn-brutal btn-yellow"
+                  onClick={() => setMobileMenuOpen(false)}
+                >
+                  Join GDG <ArrowUpRight size={15} />
+                </Link>
+              </div>
+            )}
+          </div>
         </div>
       )}
-
-      {/* Responsive CSS helper */}
-      <style>{`
-        @media (min-width: 768px) {
-          .desktop-nav {
-            display: flex !important;
-          }
-          button[aria-label="Toggle Navigation Menu"] {
-            display: none !important;
-          }
-        }
-      `}</style>
     </header>
   );
 };

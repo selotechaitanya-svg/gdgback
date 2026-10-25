@@ -1,22 +1,42 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useLayoutEffect, useRef, useState } from 'react';
+import { Link } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
+import { gsap, prefersReducedMotion } from '../lib/motion';
 import EventCard from '../components/EventCard';
-import { Search, Filter, Calendar, Sparkles, RefreshCw } from 'lucide-react';
+import Reveal from '../components/Reveal';
+import SplitWords from '../components/SplitWords';
+import {
+  Search,
+  RefreshCw,
+  SlidersHorizontal,
+  ArrowRight,
+  CalendarSearch,
+  Ticket,
+} from 'lucide-react';
 import toast from 'react-hot-toast';
+
+const categories = ['All', 'Conference', 'Workshop', 'Hackathon', 'Tech Talk', 'Bootcamp', 'Meetup'];
 
 export const Events = () => {
   const { user } = useAuth();
   const [events, setEvents] = useState([]);
   const [loading, setLoading] = useState(true);
+  const [searchInput, setSearchInput] = useState('');
   const [search, setSearch] = useState('');
   const [category, setCategory] = useState('All');
-  const [timeFilter, setTimeFilter] = useState('upcoming'); // 'upcoming' | 'all' | 'past'
+  const [timeFilter, setTimeFilter] = useState('upcoming');
   const [sort, setSort] = useState('date_asc');
   const [userRegistrations, setUserRegistrations] = useState(new Set());
   const [actionLoading, setActionLoading] = useState(null);
+  const gridRef = useRef(null);
+  const requestRef = useRef(0);
 
-  const categories = ['All', 'Conference', 'Workshop', 'Hackathon', 'Tech Talk', 'Bootcamp', 'Meetup'];
+  // Debounce text search so we do not hammer the API on every keystroke.
+  useEffect(() => {
+    const timer = window.setTimeout(() => setSearch(searchInput.trim()), 280);
+    return () => window.clearTimeout(timer);
+  }, [searchInput]);
 
   useEffect(() => {
     fetchEvents();
@@ -30,12 +50,31 @@ export const Events = () => {
     }
   }, [user]);
 
+  // Stagger freshly loaded cards into view.
+  useLayoutEffect(() => {
+    const grid = gridRef.current;
+    if (!grid || prefersReducedMotion()) return undefined;
+    const cards = grid.children;
+    if (!cards.length) return undefined;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(
+        cards,
+        { opacity: 0, y: 18 },
+        { opacity: 1, y: 0, duration: 0.5, stagger: 0.05, ease: 'power2.out', clearProps: 'transform' }
+      );
+    }, grid);
+
+    return () => ctx.revert();
+  }, [events, loading]);
+
   const fetchEvents = async () => {
+    const requestId = ++requestRef.current;
     try {
       setLoading(true);
       const params = new URLSearchParams();
 
-      if (search.trim()) params.append('search', search.trim());
+      if (search) params.append('search', search);
       if (category !== 'All') params.append('category', category);
       if (sort) params.append('sort', sort);
 
@@ -45,14 +84,16 @@ export const Events = () => {
       params.append('limit', '50');
 
       const res = await api.get(`/api/events?${params.toString()}`);
+      if (requestId !== requestRef.current) return;
       if (res.data.success) {
         setEvents(res.data.data);
       }
     } catch (err) {
+      if (requestId !== requestRef.current) return;
       console.error('Failed to fetch events:', err);
       toast.error('Failed to load events');
     } finally {
-      setLoading(false);
+      if (requestId === requestRef.current) setLoading(false);
     }
   };
 
@@ -77,7 +118,7 @@ export const Events = () => {
       setActionLoading(eventId);
       const res = await api.post(`/api/registrations/events/${eventId}/register`);
       if (res.data.success) {
-        toast.success('🎉 Registered successfully! Pass available in My Tickets');
+        toast.success('Registered! Your QR pass is ready in My Tickets.');
         setUserRegistrations((prev) => new Set([...prev, eventId]));
         fetchEvents();
       }
@@ -108,226 +149,170 @@ export const Events = () => {
     }
   };
 
+  const resetFilters = () => {
+    setSearchInput('');
+    setSearch('');
+    setCategory('All');
+    setTimeFilter('all');
+    setSort('date_asc');
+  };
+
   return (
-    <div style={{ paddingTop: '3rem', paddingBottom: '5rem' }}>
+    <div className="page">
       <div className="container-gdg">
-        {/* Header Title Banner */}
-        <div style={{ marginBottom: '2.5rem' }}>
-          <div className="badge-brutal badge-yellow" style={{ marginBottom: '0.75rem' }}>
-            COMMUNITY DIRECTORY
-          </div>
-          <h1 className="font-pixel" style={{ fontSize: 'clamp(1.75rem, 3.5vw, 2.75rem)', marginBottom: '0.75rem' }}>
-            ALL EVENTS & WORKSHOPS
-          </h1>
-          <p style={{ fontSize: '1.05rem', color: '#52525B', maxWidth: '650px' }}>
-            Discover and enroll in hands-on developer workshops, hackathons, and conferences at Shri Ramdeobaba University.
+        <div className="page-head">
+          <Reveal className="section-eyebrow" y={10} duration={0.5}>
+            <span className="badge-brutal badge-yellow">
+              <SlidersHorizontal size={13} aria-hidden="true" /> COMMUNITY DIRECTORY
+            </span>
+          </Reveal>
+          <SplitWords as="h1" className="page-title" text="ALL EVENTS & WORKSHOPS" />
+          <p className="page-sub">
+            Hands-on developer workshops, hackathons and conferences at Shri Ramdeobaba University.
+            Every session is free, mentor-led and open to curious builders.
           </p>
         </div>
 
-        {/* Filter Controls Bar */}
-        <div
-          className="card-static-lg"
-          style={{
-            padding: '1.5rem',
-            backgroundColor: '#FFFFFF',
-            marginBottom: '2.5rem',
-            display: 'flex',
-            flexDirection: 'column',
-            gap: '1.25rem',
-          }}
-        >
-          {/* Top Row: Search input + Time filter + Sort */}
-          <div
-            style={{
-              display: 'grid',
-              gridTemplateColumns: 'repeat(auto-fit, minmax(min(100%, 220px), 1fr))',
-              gap: '1rem',
-              alignItems: 'center',
-            }}
-          >
-            {/* Search Input */}
-            <div style={{ position: 'relative' }}>
+        <Reveal className="filter-panel" y={18} duration={0.6}>
+          <div className="filter-row">
+            <div className="filter-search">
+              <Search size={18} aria-hidden="true" />
+              <label htmlFor="event-search" className="sr-only">
+                Search events by title, description or venue
+              </label>
               <input
-                type="text"
-                placeholder="Search title, description, venue..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
+                id="event-search"
+                type="search"
+                placeholder="Search title, description or venue…"
+                value={searchInput}
+                onChange={(e) => setSearchInput(e.target.value)}
                 className="input-brutal"
-                style={{ paddingLeft: '2.75rem' }}
-              />
-              <Search
-                size={18}
-                style={{
-                  position: 'absolute',
-                  left: '14px',
-                  top: '50%',
-                  transform: 'translateY(-50%)',
-                  color: '#71717A',
-                }}
               />
             </div>
 
-            {/* Time Toggle Pills (Upcoming / Past / All) */}
-            <div
-              style={{
-                display: 'flex',
-                backgroundColor: '#F4F4F5',
-                border: '3px solid #000',
-                borderRadius: '8px',
-                padding: '3px',
-                boxShadow: 'var(--brutal-shadow-sm)',
-              }}
-            >
-              <button
-                onClick={() => setTimeFilter('upcoming')}
-                className="font-mono"
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  border: timeFilter === 'upcoming' ? '2px solid #000' : 'none',
-                  borderRadius: '6px',
-                  backgroundColor: timeFilter === 'upcoming' ? 'var(--google-yellow)' : 'transparent',
-                  cursor: 'pointer',
-                }}
-              >
-                UPCOMING
-              </button>
-              <button
-                onClick={() => setTimeFilter('past')}
-                className="font-mono"
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  border: timeFilter === 'past' ? '2px solid #000' : 'none',
-                  borderRadius: '6px',
-                  backgroundColor: timeFilter === 'past' ? 'var(--google-blue-light)' : 'transparent',
-                  cursor: 'pointer',
-                }}
-              >
-                PAST ARCHIVE
-              </button>
-              <button
-                onClick={() => setTimeFilter('all')}
-                className="font-mono"
-                style={{
-                  flex: 1,
-                  padding: '0.5rem',
-                  fontSize: '0.8rem',
-                  fontWeight: 800,
-                  border: timeFilter === 'all' ? '2px solid #000' : 'none',
-                  borderRadius: '6px',
-                  backgroundColor: timeFilter === 'all' ? '#FFFFFF' : 'transparent',
-                  cursor: 'pointer',
-                }}
-              >
-                ALL
-              </button>
+            <div className="segmented" role="group" aria-label="Filter by date">
+              {[
+                { value: 'upcoming', label: 'UPCOMING' },
+                { value: 'past', label: 'PAST' },
+                { value: 'all', label: 'ALL' },
+              ].map((option) => (
+                <button
+                  key={option.value}
+                  type="button"
+                  aria-pressed={timeFilter === option.value}
+                  onClick={() => setTimeFilter(option.value)}
+                >
+                  {option.label}
+                </button>
+              ))}
             </div>
 
-            {/* Sort Dropdown */}
             <div>
+              <label htmlFor="event-sort" className="sr-only">
+                Sort events
+              </label>
               <select
+                id="event-sort"
                 value={sort}
                 onChange={(e) => setSort(e.target.value)}
                 className="input-brutal font-mono"
-                style={{ fontSize: '0.85rem', cursor: 'pointer' }}
+                style={{ fontSize: '0.82rem', cursor: 'pointer', minHeight: 48 }}
               >
-                <option value="date_asc">Date (Soonest First)</option>
-                <option value="date_desc">Date (Latest First)</option>
-                <option value="title">Title (A to Z)</option>
-                <option value="capacity">Capacity (Highest First)</option>
+                <option value="date_asc">Date · soonest first</option>
+                <option value="date_desc">Date · latest first</option>
+                <option value="title">Title · A to Z</option>
+                <option value="capacity">Capacity · highest</option>
               </select>
             </div>
           </div>
 
-          {/* Bottom Row: Category Badges */}
-          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', alignItems: 'center' }}>
-            <span className="font-mono" style={{ fontSize: '0.8rem', fontWeight: 800, marginRight: '0.5rem' }}>
-              CATEGORIES:
-            </span>
-            {categories.map((cat) => {
-              const isSelected = category === cat;
-              return (
-                <button
-                  key={cat}
-                  onClick={() => setCategory(cat)}
-                  className={`btn-brutal btn-sm ${isSelected ? 'btn-black' : ''}`}
-                  style={{
-                    backgroundColor: isSelected ? '#000000' : '#FFFFFF',
-                    color: isSelected ? '#FFFFFF' : '#000000',
-                  }}
-                >
-                  {cat}
-                </button>
-              );
-            })}
+          <div className="chip-row">
+            <span className="chip-row__label">CATEGORY</span>
+            {categories.map((cat) => (
+              <button
+                key={cat}
+                type="button"
+                className="chip"
+                aria-pressed={category === cat}
+                onClick={() => setCategory(cat)}
+              >
+                {cat}
+              </button>
+            ))}
           </div>
-        </div>
+        </Reveal>
 
-        {/* Results Counter */}
-        <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: '1.5rem' }}>
-          <div className="font-mono" style={{ fontSize: '0.9rem', fontWeight: 700 }}>
-            Showing <strong>{events.length}</strong> event{events.length === 1 ? '' : 's'}
+        <div className="events-toolbar">
+          <div className="events-count" role="status" aria-live="polite">
+            {loading ? (
+              'Searching event engine…'
+            ) : (
+              <>
+                Showing <strong>{events.length}</strong> {events.length === 1 ? 'event' : 'events'}
+                {search && (
+                  <>
+                    {' '}
+                    for <strong>“{search}”</strong>
+                  </>
+                )}
+              </>
+            )}
           </div>
-          <button
-            onClick={fetchEvents}
-            className="btn-brutal btn-sm"
-            style={{ display: 'inline-flex', alignItems: 'center', gap: '4px' }}
-          >
-            <RefreshCw size={13} /> Refresh
-          </button>
-        </div>
-
-        {/* Events Grid */}
-        {loading ? (
-          <div style={{ textAlign: 'center', padding: '5rem 0' }}>
-            <div className="font-pixel" style={{ fontSize: '1.1rem', marginBottom: '1rem' }}>
-              FETCHING_EVENTS...<span className="cursor-blink">█</span>
-            </div>
-            <p className="font-mono" style={{ color: '#71717A', fontSize: '0.85rem' }}>
-              Connecting to GDG RBU Event Engine
-            </p>
-          </div>
-        ) : events.length === 0 ? (
-          <div className="card-static" style={{ padding: '4rem 2rem', textAlign: 'center' }}>
-            <div
-              style={{
-                width: '64px',
-                height: '64px',
-                backgroundColor: 'var(--google-yellow-soft)',
-                border: '3px solid #000',
-                borderRadius: '50%',
-                display: 'flex',
-                alignItems: 'center',
-                justifyContent: 'center',
-                margin: '0 auto 1.5rem auto',
-              }}
-            >
-              <Search size={30} />
-            </div>
-            <h3 className="font-pixel" style={{ fontSize: '1.25rem', marginBottom: '0.75rem' }}>
-              NO_EVENTS_MATCHED
-            </h3>
-            <p style={{ color: '#52525B', marginBottom: '1.5rem', maxWidth: '450px', margin: '0 auto 1.5rem auto' }}>
-              We could not find any events matching your search or filters. Try adjusting your search query or reset filters.
-            </p>
+          <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap' }}>
+            {user && (
+              <Link to="/my-events" className="btn-brutal btn-sm btn-green">
+                <Ticket size={14} /> My tickets
+              </Link>
+            )}
             <button
-              onClick={() => {
-                setSearch('');
-                setCategory('All');
-                setTimeFilter('all');
-              }}
-              className="btn-brutal btn-yellow"
+              type="button"
+              onClick={fetchEvents}
+              className="btn-brutal btn-sm"
+              aria-label="Refresh event results"
             >
-              Reset All Filters
+              <RefreshCw size={13} className={loading ? 'spin' : ''} /> Refresh
             </button>
           </div>
+        </div>
+
+        {loading ? (
+          <div className="events-grid" aria-busy="true" aria-label="Loading events">
+            {[0, 1, 2, 3, 4, 5].map((key) => (
+              <div className="skeleton-card" key={key}>
+                <div className="skeleton-block skeleton-media" />
+                <div className="skeleton-lines">
+                  <div className="skeleton-block skeleton-line w-45" />
+                  <div className="skeleton-block skeleton-line w-90" />
+                  <div className="skeleton-block skeleton-line w-70" />
+                  <div className="skeleton-block skeleton-line w-90" />
+                  <div className="skeleton-block skeleton-line w-70" />
+                </div>
+              </div>
+            ))}
+          </div>
+        ) : events.length === 0 ? (
+          <Reveal className="empty-state" y={16}>
+            <div className="empty-state__icon" aria-hidden="true">
+              <CalendarSearch size={30} />
+            </div>
+            <h3>NO_EVENTS_MATCHED</h3>
+            <p>
+              No events match this combination of filters yet. Reset the filters, or join the
+              community to hear about the next drop first.
+            </p>
+            <div
+              style={{ display: 'flex', gap: '0.65rem', justifyContent: 'center', flexWrap: 'wrap' }}
+            >
+              <button type="button" onClick={resetFilters} className="btn-brutal btn-yellow">
+                Reset all filters
+              </button>
+              <Link to="/register" className="btn-brutal">
+                Join GDG <ArrowRight size={15} />
+              </Link>
+            </div>
+          </Reveal>
         ) : (
-          <div className="grid-cards">
+          <div className="events-grid" ref={gridRef}>
             {events.map((event) => (
               <EventCard
                 key={event._id}

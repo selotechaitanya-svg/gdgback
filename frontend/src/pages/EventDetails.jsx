@@ -1,8 +1,12 @@
-import React, { useState, useEffect } from 'react';
+import React, { useEffect, useState } from 'react';
 import { useParams, Link, useNavigate } from 'react-router-dom';
 import api from '../api/axios';
 import { useAuth } from '../context/AuthContext';
 import QRModal from '../components/QRModal';
+import Countdown from '../components/Countdown';
+import Reveal from '../components/Reveal';
+import SplitWords from '../components/SplitWords';
+import { buildGoogleCalendarUrl } from '../lib/calendar';
 import {
   Calendar,
   MapPin,
@@ -11,10 +15,13 @@ import {
   QrCode,
   Bell,
   CheckCircle2,
-  AlertTriangle,
   Clock,
-  Shield,
   Share2,
+  CalendarPlus,
+  Award,
+  MessagesSquare,
+  Sparkles,
+  ArrowRight,
 } from 'lucide-react';
 import toast from 'react-hot-toast';
 import confetti from 'canvas-confetti';
@@ -80,15 +87,14 @@ export const EventDetails = () => {
       setActionLoading(true);
       const res = await api.post(`/api/registrations/events/${id}/register`);
       if (res.data.success) {
-        // Trigger celebratory confetti
         confetti({
-          particleCount: 80,
-          spread: 70,
-          origin: { y: 0.6 },
+          particleCount: 90,
+          spread: 75,
+          origin: { y: 0.62 },
           colors: ['#4285F4', '#EA4335', '#FBBC04', '#34A853'],
         });
 
-        toast.success('🎉 Successfully registered! Your QR Pass is ready.');
+        toast.success('Successfully registered! Your QR pass is ready.');
         setIsRegistered(true);
         setRegistrationData(res.data.data);
         fetchEventDetails();
@@ -121,7 +127,7 @@ export const EventDetails = () => {
     try {
       const res = await api.post(`/api/reminders/${id}`);
       if (res.data.success) {
-        toast.success('🔔 Reminder set! You will receive notification 24 hours prior.');
+        toast.success('Reminder set! We will notify you 24 hours before.');
         setReminderSet(true);
       }
     } catch (err) {
@@ -129,18 +135,48 @@ export const EventDetails = () => {
     }
   };
 
-  const handleShare = () => {
-    if (navigator.clipboard) {
-      navigator.clipboard.writeText(window.location.href);
-      toast.success('Event link copied to clipboard!');
+  const handleShare = async () => {
+    const shareData = {
+      title: event?.title || 'GDG RBU Event',
+      text: event?.description?.slice(0, 120),
+      url: window.location.href,
+    };
+    try {
+      if (navigator.share) {
+        await navigator.share(shareData);
+        return;
+      }
+      await navigator.clipboard.writeText(window.location.href);
+      toast.success('Event link copied to clipboard');
+    } catch (err) {
+      if (err?.name !== 'AbortError') {
+        toast.error('Could not share this event');
+      }
     }
   };
 
   if (loading) {
     return (
-      <div style={{ minHeight: '60vh', display: 'flex', alignItems: 'center', justifyContent: 'center' }}>
-        <div className="font-pixel" style={{ fontSize: '1.1rem' }}>
-          LOADING_EVENT_DETAILS...<span className="cursor-blink">█</span>
+      <div className="page">
+        <div className="container-gdg" style={{ maxWidth: 1080 }}>
+          <div className="detail-layout">
+            <div className="skeleton-card" style={{ height: 520 }}>
+              <div className="skeleton-block skeleton-media" style={{ height: 280 }} />
+              <div className="skeleton-lines">
+                <div className="skeleton-block skeleton-line w-45" />
+                <div className="skeleton-block skeleton-line w-90" />
+                <div className="skeleton-block skeleton-line w-70" />
+              </div>
+            </div>
+            <div className="skeleton-card" style={{ height: 360 }}>
+              <div className="skeleton-lines">
+                <div className="skeleton-block skeleton-line w-70" />
+                <div className="skeleton-block skeleton-line w-90" />
+                <div className="skeleton-block skeleton-line w-90" />
+                <div className="skeleton-block skeleton-line w-45" />
+              </div>
+            </div>
+          </div>
         </div>
       </div>
     );
@@ -154,274 +190,332 @@ export const EventDetails = () => {
   const registeredCount = event.registrationCount || 0;
   const spotsLeft = Math.max(0, capacity - registeredCount);
   const isFull = spotsLeft === 0;
+  const percentFilled = Math.min(100, Math.round((registeredCount / capacity) * 100));
+
+  const calendarUrl = buildGoogleCalendarUrl({
+    title: event.title,
+    description: event.description,
+    venue: event.venue,
+    date: event.date,
+  });
 
   return (
-    <div style={{ paddingTop: '2.5rem', paddingBottom: '6rem' }}>
-      <div className="container-gdg" style={{ maxWidth: '1080px' }}>
-        {/* Navigation Breadcrumb */}
-        <div style={{ marginBottom: '1.5rem', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+    <div className="page">
+      <div className="container-gdg" style={{ maxWidth: 1120 }}>
+        <div
+          style={{
+            display: 'flex',
+            justifyContent: 'space-between',
+            alignItems: 'center',
+            gap: '0.75rem',
+            marginBottom: '1.5rem',
+            flexWrap: 'wrap',
+          }}
+        >
           <Link to="/events" className="btn-brutal btn-sm">
-            <ArrowLeft size={16} /> Back to Events
+            <ArrowLeft size={15} /> Back to events
           </Link>
-          <button onClick={handleShare} className="btn-brutal btn-sm">
-            <Share2 size={15} /> Share
+          <button type="button" onClick={handleShare} className="btn-brutal btn-sm">
+            <Share2 size={14} /> Share event
           </button>
         </div>
 
-        {/* Main Content Grid */}
-        <div className="grid-details">
-          {/* Left Column: Event Visual & Description */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '2rem' }}>
-            {/* Banner Card */}
-            <div className="card-static-lg" style={{ overflow: 'hidden' }}>
-              {event.image ? (
-                <div style={{ maxHeight: '380px', overflow: 'hidden', borderBottom: '3px solid #000' }}>
-                  <img
-                    src={event.image}
-                    alt={event.title}
-                    style={{ width: '100%', height: '100%', objectFit: 'cover' }}
-                  />
+        <div className="detail-layout">
+          <div className="detail-main">
+            <Reveal y={22} duration={0.7}>
+              <div className="detail-hero">
+                {event.image && (
+                  <div className="detail-hero__media">
+                    <img src={event.image} alt="" />
+                  </div>
+                )}
+
+                <div className="detail-hero__content">
+                  <div className="detail-badges">
+                    <span className="badge-brutal badge-yellow">{event.category}</span>
+                    {isPast ? (
+                      <span className="badge-brutal" style={{ background: '#18181b', color: '#fff' }}>
+                        PAST EVENT
+                      </span>
+                    ) : (
+                      <span className="badge-brutal badge-green">
+                        <span className="hero__eyebrow-dot" aria-hidden="true" /> UPCOMING
+                      </span>
+                    )}
+                    {isRegistered && (
+                      <span className="badge-brutal badge-green">
+                        <CheckCircle2 size={13} aria-hidden="true" /> YOU ARE REGISTERED
+                      </span>
+                    )}
+                  </div>
+
+                  <SplitWords as="h1" className="detail-title" text={event.title} />
+                  <p className="detail-byline">
+                    Organized by <strong>{event.createdBy?.name || 'GDG RBU Core Team'}</strong> ·
+                    Google Developer Group on Campus
+                  </p>
+
+                  <h2 className="detail-section-label">About this session</h2>
+                  <p className="detail-description">{event.description}</p>
+
+                  <div className="detail-perks">
+                    <div className="detail-perk">
+                      <Award size={17} aria-hidden="true" /> Participation certificate
+                    </div>
+                    <div className="detail-perk">
+                      <MessagesSquare size={17} aria-hidden="true" /> Community Discord access
+                    </div>
+                    <div className="detail-perk">
+                      <Sparkles size={17} aria-hidden="true" /> Mentor-led hands-on session
+                    </div>
+                  </div>
                 </div>
-              ) : null}
-
-              <div style={{ padding: '2rem' }}>
-                <div style={{ display: 'flex', gap: '0.5rem', flexWrap: 'wrap', marginBottom: '1rem' }}>
-                  <span className="badge-brutal badge-yellow">{event.category}</span>
-                  {isPast ? (
-                    <span className="badge-brutal" style={{ backgroundColor: '#18181B', color: '#FFF' }}>
-                      PAST EVENT
-                    </span>
-                  ) : (
-                    <span className="badge-brutal badge-green">UPCOMING</span>
-                  )}
-                  {isRegistered && (
-                    <span className="badge-brutal badge-green">
-                      <CheckCircle2 size={13} /> YOU ARE REGISTERED
-                    </span>
-                  )}
-                </div>
-
-                <h1
-                  style={{
-                    fontSize: 'clamp(1.5rem, 3.5vw, 2.25rem)',
-                    fontWeight: 900,
-                    lineHeight: '1.25',
-                    marginBottom: '1rem',
-                  }}
-                >
-                  {event.title}
-                </h1>
-
-                <p style={{ fontSize: '0.85rem', color: '#71717A', marginBottom: '1.5rem' }} className="font-mono">
-                  Organized by: <strong>{event.createdBy?.name || 'GDG RBU Core Team'}</strong>
-                </p>
-
-                <h3 className="font-mono" style={{ fontSize: '0.95rem', fontWeight: 800, marginBottom: '0.75rem' }}>
-                  ABOUT THIS SESSION
-                </h3>
-                <p style={{ fontSize: '1rem', lineHeight: '1.8', color: '#27272A', whiteSpace: 'pre-line' }}>
-                  {event.description}
-                </p>
               </div>
-            </div>
+            </Reveal>
+
+            {!isPast && (
+              <Reveal className="detail-countdown" y={16} delay={0.05}>
+                <Countdown date={event.date} label="Doors open in" />
+              </Reveal>
+            )}
           </div>
 
-          {/* Right Column: Registration Box & Event Details */}
-          <div style={{ display: 'flex', flexDirection: 'column', gap: '1.75rem' }}>
-            {/* Key Logistics Card */}
-            <div className="card-static" style={{ padding: '1.75rem' }}>
-              <div className="badge-brutal badge-blue" style={{ marginBottom: '1.25rem' }}>
-                SESSION DETAILS
-              </div>
+          <aside className="detail-sidebar">
+            <Reveal y={20} delay={0.05}>
+              <div className="detail-card">
+                <h2 className="detail-card__title">
+                  <Clock size={13} aria-hidden="true" /> SESSION DETAILS
+                </h2>
 
-              <div style={{ display: 'flex', flexDirection: 'column', gap: '1.25rem' }}>
-                {/* Date & Time */}
-                <div style={{ display: 'flex', gap: '0.85rem' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      backgroundColor: 'var(--google-blue-soft)',
-                      border: '2px solid #000',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Calendar size={22} color="var(--google-blue)" />
-                  </div>
-                  <div>
-                    <div className="label-brutal" style={{ marginBottom: '2px' }}>DATE & TIME</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                      {eventDate.toLocaleDateString('en-US', {
-                        weekday: 'long',
-                        month: 'short',
-                        day: 'numeric',
-                        year: 'numeric',
-                      })}
-                    </div>
-                    <div className="font-mono" style={{ fontSize: '0.8rem', color: '#52525B' }}>
-                      {eventDate.toLocaleTimeString('en-US', { hour: '2-digit', minute: '2-digit' })}
-                    </div>
-                  </div>
-                </div>
-
-                {/* Venue */}
-                <div style={{ display: 'flex', gap: '0.85rem' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      backgroundColor: 'var(--google-red-soft)',
-                      border: '2px solid #000',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <MapPin size={22} color="var(--google-red)" />
-                  </div>
-                  <div>
-                    <div className="label-brutal" style={{ marginBottom: '2px' }}>VENUE</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>{event.venue}</div>
-                    <div className="font-mono" style={{ fontSize: '0.75rem', color: '#71717A' }}>
-                      Shri Ramdeobaba University, Nagpur
-                    </div>
-                  </div>
-                </div>
-
-                {/* Capacity Status */}
-                <div style={{ display: 'flex', gap: '0.85rem' }}>
-                  <div
-                    style={{
-                      width: '42px',
-                      height: '42px',
-                      backgroundColor: 'var(--google-green-soft)',
-                      border: '2px solid #000',
-                      borderRadius: '8px',
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'center',
-                      flexShrink: 0,
-                    }}
-                  >
-                    <Users size={22} color="var(--google-green)" />
-                  </div>
-                  <div style={{ flex: 1 }}>
-                    <div className="label-brutal" style={{ marginBottom: '2px' }}>CAPACITY</div>
-                    <div style={{ fontWeight: 700, fontSize: '0.95rem' }}>
-                      {registeredCount} / {capacity} Registered
-                    </div>
-                    <div className="progress-container" style={{ margin: '6px 0' }}>
-                      <div
-                        className="progress-fill"
-                        style={{ width: `${Math.min(100, (registeredCount / capacity) * 100)}%` }}
-                      />
-                    </div>
-                    <div className="font-mono" style={{ fontSize: '0.75rem', fontWeight: 800, color: isFull ? 'var(--google-red)' : 'var(--google-green)' }}>
-                      {isFull ? 'EVENT IS AT FULL CAPACITY' : `${spotsLeft} SPOTS REMAINING`}
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* Registration Action Box */}
-            <div
-              className="card-static"
-              style={{
-                padding: '1.75rem',
-                backgroundColor: isRegistered ? 'var(--google-green-soft)' : '#FFFFFF',
-              }}
-            >
-              {isPast ? (
-                <div style={{ textAlign: 'center' }}>
-                  <div className="font-pixel" style={{ fontSize: '0.9rem', marginBottom: '0.5rem' }}>
-                    EVENT_CONCLUDED
-                  </div>
-                  <p style={{ fontSize: '0.85rem', color: '#52525B' }}>
-                    This event occurred on {eventDate.toLocaleDateString()}. Registration is closed.
-                  </p>
-                </div>
-              ) : isRegistered ? (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-                    <CheckCircle2 size={24} color="var(--google-green)" />
+                <div className="detail-meta">
+                  <div className="detail-meta__row">
+                    <span
+                      className="detail-meta__icon"
+                      style={{
+                        '--meta-soft': 'var(--google-blue-soft)',
+                        '--meta-color': 'var(--google-blue)',
+                      }}
+                    >
+                      <Calendar size={19} aria-hidden="true" />
+                    </span>
                     <div>
-                      <h4 style={{ fontWeight: 900, fontSize: '1.1rem' }}>Registration Confirmed!</h4>
-                      <p style={{ fontSize: '0.8rem', color: '#3F3F46' }}>
-                        Your entry token is locked. Present your QR pass at the entrance.
+                      <div className="detail-meta__label">DATE &amp; TIME</div>
+                      <div className="detail-meta__value">
+                        {eventDate.toLocaleDateString('en-US', {
+                          weekday: 'long',
+                          month: 'short',
+                          day: 'numeric',
+                          year: 'numeric',
+                        })}
+                      </div>
+                      <div className="detail-meta__note">
+                        {eventDate.toLocaleTimeString('en-US', {
+                          hour: '2-digit',
+                          minute: '2-digit',
+                        })}{' '}
+                        IST
+                      </div>
+                    </div>
+                  </div>
+
+                  <div className="detail-meta__row">
+                    <span
+                      className="detail-meta__icon"
+                      style={{
+                        '--meta-soft': 'var(--google-red-soft)',
+                        '--meta-color': 'var(--google-red)',
+                      }}
+                    >
+                      <MapPin size={19} aria-hidden="true" />
+                    </span>
+                    <div>
+                      <div className="detail-meta__label">VENUE</div>
+                      <div className="detail-meta__value">{event.venue}</div>
+                      <div className="detail-meta__note">Shri Ramdeobaba University, Nagpur</div>
+                    </div>
+                  </div>
+
+                  <div className="detail-meta__row">
+                    <span
+                      className="detail-meta__icon"
+                      style={{
+                        '--meta-soft': 'var(--google-green-soft)',
+                        '--meta-color': 'var(--google-green)',
+                      }}
+                    >
+                      <Users size={19} aria-hidden="true" />
+                    </span>
+                    <div style={{ flex: 1 }}>
+                      <div className="detail-meta__label">CAPACITY</div>
+                      <div className="detail-meta__value">
+                        {registeredCount} / {capacity} registered
+                      </div>
+                    </div>
+                  </div>
+                </div>
+
+                <div className="detail-capacity">
+                  <div className="detail-capacity__top">
+                    <span>{percentFilled}% filled</span>
+                    <span
+                      style={{
+                        color: isFull
+                          ? 'var(--google-red)'
+                          : spotsLeft <= 10
+                            ? '#B45309'
+                            : 'var(--google-green)',
+                      }}
+                    >
+                      {isPast
+                        ? 'REGISTRATION CLOSED'
+                        : isFull
+                          ? 'EVENT FULL'
+                          : `${spotsLeft} SPOTS LEFT`}
+                    </span>
+                  </div>
+                  <div
+                    className="progress-container"
+                    role="progressbar"
+                    aria-valuemin={0}
+                    aria-valuemax={capacity}
+                    aria-valuenow={registeredCount}
+                    aria-label={`${registeredCount} of ${capacity} seats filled`}
+                  >
+                    <div
+                      className="progress-fill"
+                      style={{
+                        width: `${percentFilled}%`,
+                        backgroundColor: isFull
+                          ? 'var(--google-red)'
+                          : percentFilled > 80
+                            ? 'var(--google-yellow)'
+                            : 'var(--google-green)',
+                      }}
+                    />
+                  </div>
+                </div>
+              </div>
+            </Reveal>
+
+            <Reveal y={20} delay={0.1}>
+              <div
+                className="detail-card"
+                style={{ background: isRegistered ? 'var(--google-green-soft)' : '#FFFFFF' }}
+              >
+                {isPast ? (
+                  <div style={{ textAlign: 'center' }}>
+                    <h2 className="font-pixel" style={{ fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+                      EVENT_CONCLUDED
+                    </h2>
+                    <p style={{ fontSize: '0.82rem', color: '#52525B', lineHeight: 1.6 }}>
+                      This session wrapped on {eventDate.toLocaleDateString()}. Explore upcoming
+                      events to find your next build.
+                    </p>
+                    <Link
+                      to="/events"
+                      className="btn-brutal btn-sm btn-yellow"
+                      style={{ marginTop: '1rem', width: '100%' }}
+                    >
+                      Browse upcoming <ArrowRight size={14} />
+                    </Link>
+                  </div>
+                ) : isRegistered ? (
+                  <div className="detail-actions">
+                    <div style={{ display: 'flex', alignItems: 'flex-start', gap: '0.6rem' }}>
+                      <CheckCircle2 size={23} color="var(--google-green)" aria-hidden="true" />
+                      <div>
+                        <h2 style={{ fontWeight: 900, fontSize: '1.02rem', marginBottom: '0.15rem' }}>
+                          Your seat is locked
+                        </h2>
+                        <p style={{ fontSize: '0.78rem', color: '#3F3F46', lineHeight: 1.55 }}>
+                          Present your QR pass at the entrance. Need to transfer it? Cancel and
+                          re-register from the same account.
+                        </p>
+                      </div>
+                    </div>
+
+                    <button
+                      type="button"
+                      onClick={() => setIsModalOpen(true)}
+                      className="btn-brutal btn-yellow"
+                    >
+                      <QrCode size={17} /> View &amp; download QR pass
+                    </button>
+
+                    <button
+                      type="button"
+                      onClick={handleSetReminder}
+                      disabled={reminderSet}
+                      className="btn-brutal"
+                    >
+                      <Bell size={16} /> {reminderSet ? 'Reminder enabled' : 'Set 24h reminder'}
+                    </button>
+
+                    <a
+                      href={calendarUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="btn-brutal btn-sm"
+                    >
+                      <CalendarPlus size={15} /> Add to Google Calendar
+                    </a>
+
+                    <button
+                      type="button"
+                      onClick={handleUnregister}
+                      disabled={actionLoading}
+                      className="btn-brutal btn-sm btn-red"
+                    >
+                      Cancel registration
+                    </button>
+                  </div>
+                ) : (
+                  <div className="detail-actions">
+                    <div>
+                      <h2 style={{ fontWeight: 900, fontSize: '1.1rem', marginBottom: '0.2rem' }}>
+                        Secure your spot
+                      </h2>
+                      <p style={{ fontSize: '0.82rem', color: '#52525B', lineHeight: 1.6 }}>
+                        Free registration. Includes a participation certificate, hands-on lab access
+                        and community Discord channels.
                       </p>
                     </div>
+
+                    <button
+                      type="button"
+                      onClick={handleRegister}
+                      disabled={isFull || actionLoading}
+                      className={`btn-brutal btn-lg ${isFull ? '' : 'btn-green'}`}
+                    >
+                      {actionLoading
+                        ? 'Processing…'
+                        : isFull
+                          ? 'Event full'
+                          : 'Register now — free'}
+                    </button>
+
+                    <a
+                      href={calendarUrl}
+                      target="_blank"
+                      rel="noreferrer noopener"
+                      className="btn-brutal btn-sm"
+                    >
+                      <CalendarPlus size={15} /> Add to Google Calendar
+                    </a>
+
+                    {!user && (
+                      <p className="detail-actions__note">
+                        You will be asked to sign in or create a free account.
+                      </p>
+                    )}
                   </div>
-
-                  <button
-                    onClick={() => setIsModalOpen(true)}
-                    className="btn-brutal btn-yellow"
-                    style={{ width: '100%' }}
-                  >
-                    <QrCode size={18} /> View & Download QR Entry Pass
-                  </button>
-
-                  <button
-                    onClick={handleSetReminder}
-                    disabled={reminderSet}
-                    className="btn-brutal"
-                    style={{ width: '100%' }}
-                  >
-                    <Bell size={16} /> {reminderSet ? 'Reminder Enabled ✓' : 'Set Event Reminder'}
-                  </button>
-
-                  <button
-                    onClick={handleUnregister}
-                    disabled={actionLoading}
-                    className="btn-brutal btn-sm btn-red"
-                    style={{ width: '100%', marginTop: '0.5rem' }}
-                  >
-                    Cancel Registration
-                  </button>
-                </div>
-              ) : (
-                <div style={{ display: 'flex', flexDirection: 'column', gap: '1rem' }}>
-                  <div>
-                    <h4 style={{ fontWeight: 900, fontSize: '1.15rem', marginBottom: '0.25rem' }}>
-                      Secure Your Spot
-                    </h4>
-                    <p style={{ fontSize: '0.85rem', color: '#52525B' }}>
-                      Free registration. Includes participation certificate and access to Discord discussion channels.
-                    </p>
-                  </div>
-
-                  <button
-                    onClick={handleRegister}
-                    disabled={isFull || actionLoading}
-                    className={`btn-brutal btn-lg ${isFull ? '' : 'btn-green'}`}
-                    style={{ width: '100%' }}
-                  >
-                    {actionLoading
-                      ? 'Processing...'
-                      : isFull
-                      ? 'Event Full (Waitlist)'
-                      : 'Register Now — Free'}
-                  </button>
-
-                  {!user && (
-                    <p className="font-mono" style={{ fontSize: '0.75rem', textAlign: 'center', color: '#71717A' }}>
-                      You will be asked to sign in or create an account.
-                    </p>
-                  )}
-                </div>
-              )}
-            </div>
-          </div>
+                )}
+              </div>
+            </Reveal>
+          </aside>
         </div>
       </div>
 
-      {/* QR Code Pass Modal */}
       {isModalOpen && (
         <QRModal
           isOpen={isModalOpen}

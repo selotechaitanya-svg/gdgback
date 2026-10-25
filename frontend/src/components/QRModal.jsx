@@ -1,14 +1,51 @@
-import React from 'react';
-import { X, Download, Printer, CheckCircle, ShieldCheck } from 'lucide-react';
+import React, { useEffect, useLayoutEffect, useRef } from 'react';
+import { X, Download, Printer, ShieldCheck } from 'lucide-react';
+import { gsap, prefersReducedMotion } from '../lib/motion';
+import { useSmoothScroll } from '../lib/SmoothScrollContext';
 
 export const QRModal = ({ isOpen, onClose, registration }) => {
+  const overlayRef = useRef(null);
+  const ticketRef = useRef(null);
+  const { stop, start } = useSmoothScroll();
+
+  useEffect(() => {
+    if (!isOpen) return undefined;
+    stop();
+
+    const onKey = (event) => {
+      if (event.key === 'Escape') onClose?.();
+    };
+    window.addEventListener('keydown', onKey);
+
+    return () => {
+      window.removeEventListener('keydown', onKey);
+      start();
+    };
+  }, [isOpen, onClose, stop, start]);
+
+  useLayoutEffect(() => {
+    if (!isOpen || prefersReducedMotion()) return undefined;
+    const overlay = overlayRef.current;
+    const ticket = ticketRef.current;
+    if (!overlay || !ticket) return undefined;
+
+    const ctx = gsap.context(() => {
+      gsap.fromTo(overlay, { opacity: 0 }, { opacity: 1, duration: 0.25, ease: 'power2.out' });
+      gsap.fromTo(
+        ticket,
+        { opacity: 0, y: 28, scale: 0.96 },
+        { opacity: 1, y: 0, scale: 1, duration: 0.45, ease: 'back.out(1.4)' }
+      );
+    }, overlay);
+
+    return () => ctx.revert();
+  }, [isOpen]);
+
   if (!isOpen || !registration) return null;
 
-  const { event, user, qrCode, createdAt } = registration;
+  const { event, user, qrCode } = registration;
 
-  const handlePrint = () => {
-    window.print();
-  };
+  const handlePrint = () => window.print();
 
   const handleDownload = () => {
     if (!qrCode) return;
@@ -20,23 +57,29 @@ export const QRModal = ({ isOpen, onClose, registration }) => {
 
   return (
     <div
+      ref={overlayRef}
+      className="qr-overlay"
       style={{
         position: 'fixed',
-        top: 0,
-        left: 0,
+        inset: 0,
         width: '100vw',
         height: '100vh',
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        backdropFilter: 'blur(3px)',
-        zIndex: 1000,
+        backgroundColor: 'rgba(0, 0, 0, 0.68)',
+        backdropFilter: 'blur(4px)',
+        zIndex: 1500,
         display: 'flex',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 'clamp(0.75rem, 3vw, 1.5rem)',
+        overflowY: 'auto',
       }}
       onClick={onClose}
+      role="dialog"
+      aria-modal="true"
+      aria-label="Your QR entry pass"
     >
       <div
+        ref={ticketRef}
         className="ticket-container"
         style={{
           maxWidth: '500px',
@@ -44,62 +87,58 @@ export const QRModal = ({ isOpen, onClose, registration }) => {
           backgroundColor: '#FFFFFF',
           padding: 'clamp(1.25rem, 4vw, 2rem)',
           position: 'relative',
+          margin: 'auto',
         }}
         onClick={(e) => e.stopPropagation()}
       >
-        {/* Ticket Notches */}
-        <div className="ticket-notch-left" />
-        <div className="ticket-notch-right" />
+        <div className="ticket-notch-left" aria-hidden="true" />
+        <div className="ticket-notch-right" aria-hidden="true" />
 
-        {/* Close Button */}
         <button
+          type="button"
           onClick={onClose}
           className="btn-brutal btn-sm btn-red"
-          style={{
-            position: 'absolute',
-            top: '16px',
-            right: '16px',
-            padding: '4px',
-          }}
-          aria-label="Close modal"
+          style={{ position: 'absolute', top: '16px', right: '16px', padding: '4px' }}
+          aria-label="Close QR pass"
         >
           <X size={18} />
         </button>
 
-        {/* Ticket Header */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <div style={{ display: 'inline-flex', alignItems: 'center', gap: '6px', marginBottom: '0.5rem' }}>
-            <span className="font-pixel" style={{ fontSize: '0.85rem' }}>GDG ON CAMPUS · RBU</span>
+          <div className="font-pixel" style={{ fontSize: '0.8rem', marginBottom: '0.5rem' }}>
+            GDG ON CAMPUS · RBU
           </div>
           <div className="badge-brutal badge-green" style={{ display: 'inline-flex', gap: '4px' }}>
-            <ShieldCheck size={14} /> OFFICIAL ENTRY PASS
+            <ShieldCheck size={14} aria-hidden="true" /> OFFICIAL ENTRY PASS
           </div>
         </div>
 
-        {/* Event Details */}
         <div style={{ textAlign: 'center', marginBottom: '1.5rem' }}>
-          <h2 style={{ fontSize: '1.25rem', fontWeight: 900, marginBottom: '0.5rem' }}>
+          <h2 style={{ fontSize: '1.2rem', fontWeight: 900, marginBottom: '0.5rem', lineHeight: 1.35 }}>
             {event?.title || 'GDG Community Event'}
           </h2>
-          <p className="font-mono" style={{ fontSize: '0.85rem', color: '#52525B' }}>
+          <p className="font-mono" style={{ fontSize: '0.82rem', color: '#52525B' }}>
             {event?.venue || 'Shri Ramdeobaba University, Nagpur'}
           </p>
-          <p className="font-mono" style={{ fontSize: '0.8rem', color: '#18181B', fontWeight: 700, marginTop: '4px' }}>
-            {event?.date ? new Date(event.date).toLocaleDateString('en-US', {
-              weekday: 'long',
-              year: 'numeric',
-              month: 'long',
-              day: 'numeric',
-              hour: '2-digit',
-              minute: '2-digit',
-            }) : 'Upcoming Session'}
+          <p
+            className="font-mono"
+            style={{ fontSize: '0.78rem', color: '#18181B', fontWeight: 700, marginTop: '4px' }}
+          >
+            {event?.date
+              ? new Date(event.date).toLocaleDateString('en-US', {
+                  weekday: 'long',
+                  year: 'numeric',
+                  month: 'long',
+                  day: 'numeric',
+                  hour: '2-digit',
+                  minute: '2-digit',
+                })
+              : 'Upcoming Session'}
           </p>
         </div>
 
-        {/* Perforated Divider */}
-        <div className="ticket-divider" />
+        <div className="ticket-divider" aria-hidden="true" />
 
-        {/* QR Code Section */}
         <div
           style={{
             display: 'flex',
@@ -122,41 +161,30 @@ export const QRModal = ({ isOpen, onClose, registration }) => {
             >
               <img
                 src={qrCode}
-                alt="Registration QR Code"
+                alt={`QR entry pass for ${user?.name || 'attendee'}`}
                 style={{ width: '190px', height: '190px', display: 'block' }}
               />
             </div>
           ) : (
             <div className="font-mono" style={{ padding: '2rem' }}>
-              QR_GENERATING...
+              QR_GENERATING…
             </div>
           )}
 
           <div className="font-mono" style={{ textAlign: 'center' }}>
-            <div style={{ fontSize: '0.95rem', fontWeight: 800 }}>
+            <div style={{ fontSize: '0.92rem', fontWeight: 800 }}>
               Attendee: {user?.name || 'Registered Developer'}
             </div>
-            <div style={{ fontSize: '0.8rem', color: '#71717A' }}>
-              {user?.email}
-            </div>
+            <div style={{ fontSize: '0.78rem', color: '#71717A' }}>{user?.email}</div>
           </div>
         </div>
 
-        {/* Ticket Footer Action Buttons */}
         <div style={{ display: 'flex', gap: '0.75rem', marginTop: '1.5rem' }}>
-          <button
-            onClick={handleDownload}
-            className="btn-brutal btn-yellow"
-            style={{ flex: 1 }}
-          >
+          <button type="button" onClick={handleDownload} className="btn-brutal btn-yellow" style={{ flex: 1 }}>
             <Download size={16} /> Save QR
           </button>
-          <button
-            onClick={handlePrint}
-            className="btn-brutal"
-            style={{ flex: 1 }}
-          >
-            <Printer size={16} /> Print Pass
+          <button type="button" onClick={handlePrint} className="btn-brutal" style={{ flex: 1 }}>
+            <Printer size={16} /> Print pass
           </button>
         </div>
       </div>

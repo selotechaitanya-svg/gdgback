@@ -178,25 +178,8 @@ export const Login = () => {
   };
 
   return (
-    <div
-      style={{
-        minHeight: '80vh',
-        display: 'flex',
-        alignItems: 'center',
-        justifyContent: 'center',
-        padding: '2.5rem 1.5rem',
-      }}
-    >
-      <div
-        className="card-static-lg"
-        style={{
-          maxWidth: '480px',
-          width: '100%',
-          backgroundColor: '#FFFFFF',
-          padding: '2.5rem',
-          position: 'relative',
-        }}
-      >
+    <div className="auth-page">
+      <div className="auth-card card-static-lg">
         <div style={{ textAlign: 'center', marginBottom: '1.75rem' }}>
           <div className="badge-brutal badge-blue" style={{ marginBottom: '0.75rem' }}>
             AUTHENTICATION
